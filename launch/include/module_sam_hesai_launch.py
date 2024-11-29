@@ -66,5 +66,6 @@ def generate_launch_description():
         package="emv-lio2",
         executable="emv-lio2_visual_feature",
         name="visual_feature",
-        output="screen"
+        output="screen",
+        parameters=[{"config_dir":config_dir}]
     )])

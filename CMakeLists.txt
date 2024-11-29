@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "-O3 -Wall -g -pthread -w")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g -pthread -w")
 
+
 # Find packages
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -128,6 +129,20 @@ ament_target_dependencies(${PROJECT_NAME}_visual_feature
 #         ${PROJECT_NAME}_msgTest
 #         DESTINATION lib/${PROJECT_NAME})
 
+install(DIRECTORY
+        launch
+        DESTINATION share/${PROJECT_NAME}/
+)
+
+install(DIRECTORY
+        config
+        DESTINATION share/${PROJECT_NAME}/
+)
+
+install(TARGETS
+        ${PROJECT_NAME}_visual_feature
+        DESTINATION lib/${PROJECT_NAME}
+)
 message(STATUS "===== Selected CMake Variables =====")
 
 if(CMAKE_BUILD_TYPE)

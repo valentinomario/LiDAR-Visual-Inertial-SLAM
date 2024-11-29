@@ -14,7 +14,7 @@ def generate_launch_description():
             PythonLaunchDescriptionSource(os.path.join(launch_dir, 'module_robot_state_publisher_launch.py'))
         ),
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(os.path.join(launch_dir, 'module_rviz.py'))
+            PythonLaunchDescriptionSource(os.path.join(launch_dir, 'module_rviz_launch.py'))
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(launch_dir, 'module_sam_hesai_launch.py'))

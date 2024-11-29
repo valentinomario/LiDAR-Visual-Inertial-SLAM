@@ -27,11 +27,11 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/buffer.h>
-#include <tf2_eigen>
+#include <tf2_eigen/tf2_eigen.hpp>
 
-using namespace std;
-using namespace camodocal;
-using namespace Eigen;
+// using namespace std;
+// using namespace camodocal;
+// using namespace Eigen;
 
 bool inBorder(const cv::Point2f &pt);
 
@@ -148,7 +148,7 @@ public:
         } 
         catch (tf2::TransformException ex)
         {
-            // ROS_ERROR("image no tf");
+            RCLCPP_WARN(node->get_logger(), "Transform failed: %s", ex.what()); // TODO: remove
             return depth_of_point;
         }
 
@@ -254,8 +254,8 @@ public:
             }
         }
         *depth_cloud_local = *depth_cloud_local_filter2;
-        publishCloud(&pub_depth_cloud, depth_cloud_local, stamp_cur, "vins_body_ros");
-        publishCloud(&pub_all_depth_cloud, depth_cloud_all, stamp_cur, "vins_body_ros");
+        publishCloud(pub_depth_cloud, depth_cloud_local, stamp_cur, "vins_body_ros");
+        publishCloud(pub_all_depth_cloud, depth_cloud_all, stamp_cur, "vins_body_ros");
 
         // 5. project depth cloud onto a unit sphere
         pcl::PointCloud<PointType>::Ptr depth_cloud_unit_sphere(new pcl::PointCloud<PointType>());
@@ -355,11 +355,11 @@ public:
 
         // visualize features in cartesian 3d space (including the feature without depth (default 1))
         if(cam_id == 0)
-            publishCloud(&pub_depth_feature, features_3d_sphere, stamp_cur, "vins_body_ros");
+            publishCloud(pub_depth_feature, features_3d_sphere, stamp_cur, "vins_body_ros");
         else if(cam_id == 1)
-            publishCloud(&pub_depth_feature_1, features_3d_sphere, stamp_cur, "vins_body_ros");
+            publishCloud(pub_depth_feature_1, features_3d_sphere, stamp_cur, "vins_body_ros");
         else if(cam_id == 2)
-            publishCloud(&pub_depth_feature_2, features_3d_sphere, stamp_cur, "vins_body_ros");
+            publishCloud(pub_depth_feature_2, features_3d_sphere, stamp_cur, "vins_body_ros");
             
         // update depth value for return
         for (int i = 0; i < (int)features_3d_sphere->size(); ++i)
@@ -369,7 +369,7 @@ public:
         }
 
         // visualization project points on image for visualization (it's slow!)
-        if (pub_depth_image.getNumSubscribers() != 0)
+        if (pub_depth_image->get_subscription_count() != 0)
         {
             vector<cv::Point2f> points_2d;
             vector<float> points_distance;
@@ -401,9 +401,9 @@ public:
             cv_bridge::CvImage bridge;
             bridge.image = showImage;
             bridge.encoding = "rgb8";
-            sensor_msgs::Image::Ptr imageShowPointer = bridge.toImageMsg();
+            sensor_msgs::msg::Image::SharedPtr imageShowPointer = bridge.toImageMsg();
             imageShowPointer->header.stamp = stamp_cur;
-            pub_depth_image.publish(imageShowPointer);
+            pub_depth_image->publish(*imageShowPointer);
         }
 
         return depth_of_point;
