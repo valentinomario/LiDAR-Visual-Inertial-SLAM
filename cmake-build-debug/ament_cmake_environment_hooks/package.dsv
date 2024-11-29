@@ -1,0 +1,4 @@
+source;share/emv-lio2/local_setup.bash
+source;share/emv-lio2/local_setup.dsv
+source;share/emv-lio2/local_setup.sh
+source;share/emv-lio2/local_setup.zsh
