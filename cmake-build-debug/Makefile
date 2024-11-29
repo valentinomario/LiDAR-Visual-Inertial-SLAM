@@ -210,6 +210,19 @@ test_node/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_node.dir/build.make CMakeFiles/test_node.dir/build
 .PHONY : test_node/fast
 
+#=============================================================================
+# Target rules for targets named emv-lio2_visual_feature
+
+# Build rule for target.
+emv-lio2_visual_feature: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 emv-lio2_visual_feature
+.PHONY : emv-lio2_visual_feature
+
+# fast build rule for target.
+emv-lio2_visual_feature/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/build
+.PHONY : emv-lio2_visual_feature/fast
+
 src/test_node.o: src/test_node.cpp.o
 .PHONY : src/test_node.o
 
@@ -234,6 +247,270 @@ src/test_node.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_node.dir/build.make CMakeFiles/test_node.dir/src/test_node.cpp.s
 .PHONY : src/test_node.cpp.s
 
+src/visual_odometry/visual_feature/camera_models/Camera.o: src/visual_odometry/visual_feature/camera_models/Camera.cc.o
+.PHONY : src/visual_odometry/visual_feature/camera_models/Camera.o
+
+# target to build an object file
+src/visual_odometry/visual_feature/camera_models/Camera.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/Camera.cc.o
+.PHONY : src/visual_odometry/visual_feature/camera_models/Camera.cc.o
+
+src/visual_odometry/visual_feature/camera_models/Camera.i: src/visual_odometry/visual_feature/camera_models/Camera.cc.i
+.PHONY : src/visual_odometry/visual_feature/camera_models/Camera.i
+
+# target to preprocess a source file
+src/visual_odometry/visual_feature/camera_models/Camera.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/Camera.cc.i
+.PHONY : src/visual_odometry/visual_feature/camera_models/Camera.cc.i
+
+src/visual_odometry/visual_feature/camera_models/Camera.s: src/visual_odometry/visual_feature/camera_models/Camera.cc.s
+.PHONY : src/visual_odometry/visual_feature/camera_models/Camera.s
+
+# target to generate assembly for a file
+src/visual_odometry/visual_feature/camera_models/Camera.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/Camera.cc.s
+.PHONY : src/visual_odometry/visual_feature/camera_models/Camera.cc.s
+
+src/visual_odometry/visual_feature/camera_models/CameraFactory.o: src/visual_odometry/visual_feature/camera_models/CameraFactory.cc.o
+.PHONY : src/visual_odometry/visual_feature/camera_models/CameraFactory.o
+
+# target to build an object file
+src/visual_odometry/visual_feature/camera_models/CameraFactory.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/CameraFactory.cc.o
+.PHONY : src/visual_odometry/visual_feature/camera_models/CameraFactory.cc.o
+
+src/visual_odometry/visual_feature/camera_models/CameraFactory.i: src/visual_odometry/visual_feature/camera_models/CameraFactory.cc.i
+.PHONY : src/visual_odometry/visual_feature/camera_models/CameraFactory.i
+
+# target to preprocess a source file
+src/visual_odometry/visual_feature/camera_models/CameraFactory.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/CameraFactory.cc.i
+.PHONY : src/visual_odometry/visual_feature/camera_models/CameraFactory.cc.i
+
+src/visual_odometry/visual_feature/camera_models/CameraFactory.s: src/visual_odometry/visual_feature/camera_models/CameraFactory.cc.s
+.PHONY : src/visual_odometry/visual_feature/camera_models/CameraFactory.s
+
+# target to generate assembly for a file
+src/visual_odometry/visual_feature/camera_models/CameraFactory.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/CameraFactory.cc.s
+.PHONY : src/visual_odometry/visual_feature/camera_models/CameraFactory.cc.s
+
+src/visual_odometry/visual_feature/camera_models/CataCamera.o: src/visual_odometry/visual_feature/camera_models/CataCamera.cc.o
+.PHONY : src/visual_odometry/visual_feature/camera_models/CataCamera.o
+
+# target to build an object file
+src/visual_odometry/visual_feature/camera_models/CataCamera.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/CataCamera.cc.o
+.PHONY : src/visual_odometry/visual_feature/camera_models/CataCamera.cc.o
+
+src/visual_odometry/visual_feature/camera_models/CataCamera.i: src/visual_odometry/visual_feature/camera_models/CataCamera.cc.i
+.PHONY : src/visual_odometry/visual_feature/camera_models/CataCamera.i
+
+# target to preprocess a source file
+src/visual_odometry/visual_feature/camera_models/CataCamera.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/CataCamera.cc.i
+.PHONY : src/visual_odometry/visual_feature/camera_models/CataCamera.cc.i
+
+src/visual_odometry/visual_feature/camera_models/CataCamera.s: src/visual_odometry/visual_feature/camera_models/CataCamera.cc.s
+.PHONY : src/visual_odometry/visual_feature/camera_models/CataCamera.s
+
+# target to generate assembly for a file
+src/visual_odometry/visual_feature/camera_models/CataCamera.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/CataCamera.cc.s
+.PHONY : src/visual_odometry/visual_feature/camera_models/CataCamera.cc.s
+
+src/visual_odometry/visual_feature/camera_models/CostFunctionFactory.o: src/visual_odometry/visual_feature/camera_models/CostFunctionFactory.cc.o
+.PHONY : src/visual_odometry/visual_feature/camera_models/CostFunctionFactory.o
+
+# target to build an object file
+src/visual_odometry/visual_feature/camera_models/CostFunctionFactory.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/CostFunctionFactory.cc.o
+.PHONY : src/visual_odometry/visual_feature/camera_models/CostFunctionFactory.cc.o
+
+src/visual_odometry/visual_feature/camera_models/CostFunctionFactory.i: src/visual_odometry/visual_feature/camera_models/CostFunctionFactory.cc.i
+.PHONY : src/visual_odometry/visual_feature/camera_models/CostFunctionFactory.i
+
+# target to preprocess a source file
+src/visual_odometry/visual_feature/camera_models/CostFunctionFactory.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/CostFunctionFactory.cc.i
+.PHONY : src/visual_odometry/visual_feature/camera_models/CostFunctionFactory.cc.i
+
+src/visual_odometry/visual_feature/camera_models/CostFunctionFactory.s: src/visual_odometry/visual_feature/camera_models/CostFunctionFactory.cc.s
+.PHONY : src/visual_odometry/visual_feature/camera_models/CostFunctionFactory.s
+
+# target to generate assembly for a file
+src/visual_odometry/visual_feature/camera_models/CostFunctionFactory.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/CostFunctionFactory.cc.s
+.PHONY : src/visual_odometry/visual_feature/camera_models/CostFunctionFactory.cc.s
+
+src/visual_odometry/visual_feature/camera_models/EquidistantCamera.o: src/visual_odometry/visual_feature/camera_models/EquidistantCamera.cc.o
+.PHONY : src/visual_odometry/visual_feature/camera_models/EquidistantCamera.o
+
+# target to build an object file
+src/visual_odometry/visual_feature/camera_models/EquidistantCamera.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/EquidistantCamera.cc.o
+.PHONY : src/visual_odometry/visual_feature/camera_models/EquidistantCamera.cc.o
+
+src/visual_odometry/visual_feature/camera_models/EquidistantCamera.i: src/visual_odometry/visual_feature/camera_models/EquidistantCamera.cc.i
+.PHONY : src/visual_odometry/visual_feature/camera_models/EquidistantCamera.i
+
+# target to preprocess a source file
+src/visual_odometry/visual_feature/camera_models/EquidistantCamera.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/EquidistantCamera.cc.i
+.PHONY : src/visual_odometry/visual_feature/camera_models/EquidistantCamera.cc.i
+
+src/visual_odometry/visual_feature/camera_models/EquidistantCamera.s: src/visual_odometry/visual_feature/camera_models/EquidistantCamera.cc.s
+.PHONY : src/visual_odometry/visual_feature/camera_models/EquidistantCamera.s
+
+# target to generate assembly for a file
+src/visual_odometry/visual_feature/camera_models/EquidistantCamera.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/EquidistantCamera.cc.s
+.PHONY : src/visual_odometry/visual_feature/camera_models/EquidistantCamera.cc.s
+
+src/visual_odometry/visual_feature/camera_models/PinholeCamera.o: src/visual_odometry/visual_feature/camera_models/PinholeCamera.cc.o
+.PHONY : src/visual_odometry/visual_feature/camera_models/PinholeCamera.o
+
+# target to build an object file
+src/visual_odometry/visual_feature/camera_models/PinholeCamera.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/PinholeCamera.cc.o
+.PHONY : src/visual_odometry/visual_feature/camera_models/PinholeCamera.cc.o
+
+src/visual_odometry/visual_feature/camera_models/PinholeCamera.i: src/visual_odometry/visual_feature/camera_models/PinholeCamera.cc.i
+.PHONY : src/visual_odometry/visual_feature/camera_models/PinholeCamera.i
+
+# target to preprocess a source file
+src/visual_odometry/visual_feature/camera_models/PinholeCamera.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/PinholeCamera.cc.i
+.PHONY : src/visual_odometry/visual_feature/camera_models/PinholeCamera.cc.i
+
+src/visual_odometry/visual_feature/camera_models/PinholeCamera.s: src/visual_odometry/visual_feature/camera_models/PinholeCamera.cc.s
+.PHONY : src/visual_odometry/visual_feature/camera_models/PinholeCamera.s
+
+# target to generate assembly for a file
+src/visual_odometry/visual_feature/camera_models/PinholeCamera.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/PinholeCamera.cc.s
+.PHONY : src/visual_odometry/visual_feature/camera_models/PinholeCamera.cc.s
+
+src/visual_odometry/visual_feature/camera_models/ScaramuzzaCamera.o: src/visual_odometry/visual_feature/camera_models/ScaramuzzaCamera.cc.o
+.PHONY : src/visual_odometry/visual_feature/camera_models/ScaramuzzaCamera.o
+
+# target to build an object file
+src/visual_odometry/visual_feature/camera_models/ScaramuzzaCamera.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/ScaramuzzaCamera.cc.o
+.PHONY : src/visual_odometry/visual_feature/camera_models/ScaramuzzaCamera.cc.o
+
+src/visual_odometry/visual_feature/camera_models/ScaramuzzaCamera.i: src/visual_odometry/visual_feature/camera_models/ScaramuzzaCamera.cc.i
+.PHONY : src/visual_odometry/visual_feature/camera_models/ScaramuzzaCamera.i
+
+# target to preprocess a source file
+src/visual_odometry/visual_feature/camera_models/ScaramuzzaCamera.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/ScaramuzzaCamera.cc.i
+.PHONY : src/visual_odometry/visual_feature/camera_models/ScaramuzzaCamera.cc.i
+
+src/visual_odometry/visual_feature/camera_models/ScaramuzzaCamera.s: src/visual_odometry/visual_feature/camera_models/ScaramuzzaCamera.cc.s
+.PHONY : src/visual_odometry/visual_feature/camera_models/ScaramuzzaCamera.s
+
+# target to generate assembly for a file
+src/visual_odometry/visual_feature/camera_models/ScaramuzzaCamera.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/ScaramuzzaCamera.cc.s
+.PHONY : src/visual_odometry/visual_feature/camera_models/ScaramuzzaCamera.cc.s
+
+src/visual_odometry/visual_feature/camera_models/gpl.o: src/visual_odometry/visual_feature/camera_models/gpl.cc.o
+.PHONY : src/visual_odometry/visual_feature/camera_models/gpl.o
+
+# target to build an object file
+src/visual_odometry/visual_feature/camera_models/gpl.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/gpl.cc.o
+.PHONY : src/visual_odometry/visual_feature/camera_models/gpl.cc.o
+
+src/visual_odometry/visual_feature/camera_models/gpl.i: src/visual_odometry/visual_feature/camera_models/gpl.cc.i
+.PHONY : src/visual_odometry/visual_feature/camera_models/gpl.i
+
+# target to preprocess a source file
+src/visual_odometry/visual_feature/camera_models/gpl.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/gpl.cc.i
+.PHONY : src/visual_odometry/visual_feature/camera_models/gpl.cc.i
+
+src/visual_odometry/visual_feature/camera_models/gpl.s: src/visual_odometry/visual_feature/camera_models/gpl.cc.s
+.PHONY : src/visual_odometry/visual_feature/camera_models/gpl.s
+
+# target to generate assembly for a file
+src/visual_odometry/visual_feature/camera_models/gpl.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/camera_models/gpl.cc.s
+.PHONY : src/visual_odometry/visual_feature/camera_models/gpl.cc.s
+
+src/visual_odometry/visual_feature/feature_tracker.o: src/visual_odometry/visual_feature/feature_tracker.cpp.o
+.PHONY : src/visual_odometry/visual_feature/feature_tracker.o
+
+# target to build an object file
+src/visual_odometry/visual_feature/feature_tracker.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/feature_tracker.cpp.o
+.PHONY : src/visual_odometry/visual_feature/feature_tracker.cpp.o
+
+src/visual_odometry/visual_feature/feature_tracker.i: src/visual_odometry/visual_feature/feature_tracker.cpp.i
+.PHONY : src/visual_odometry/visual_feature/feature_tracker.i
+
+# target to preprocess a source file
+src/visual_odometry/visual_feature/feature_tracker.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/feature_tracker.cpp.i
+.PHONY : src/visual_odometry/visual_feature/feature_tracker.cpp.i
+
+src/visual_odometry/visual_feature/feature_tracker.s: src/visual_odometry/visual_feature/feature_tracker.cpp.s
+.PHONY : src/visual_odometry/visual_feature/feature_tracker.s
+
+# target to generate assembly for a file
+src/visual_odometry/visual_feature/feature_tracker.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/feature_tracker.cpp.s
+.PHONY : src/visual_odometry/visual_feature/feature_tracker.cpp.s
+
+src/visual_odometry/visual_feature/feature_tracker_node.o: src/visual_odometry/visual_feature/feature_tracker_node.cpp.o
+.PHONY : src/visual_odometry/visual_feature/feature_tracker_node.o
+
+# target to build an object file
+src/visual_odometry/visual_feature/feature_tracker_node.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/feature_tracker_node.cpp.o
+.PHONY : src/visual_odometry/visual_feature/feature_tracker_node.cpp.o
+
+src/visual_odometry/visual_feature/feature_tracker_node.i: src/visual_odometry/visual_feature/feature_tracker_node.cpp.i
+.PHONY : src/visual_odometry/visual_feature/feature_tracker_node.i
+
+# target to preprocess a source file
+src/visual_odometry/visual_feature/feature_tracker_node.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/feature_tracker_node.cpp.i
+.PHONY : src/visual_odometry/visual_feature/feature_tracker_node.cpp.i
+
+src/visual_odometry/visual_feature/feature_tracker_node.s: src/visual_odometry/visual_feature/feature_tracker_node.cpp.s
+.PHONY : src/visual_odometry/visual_feature/feature_tracker_node.s
+
+# target to generate assembly for a file
+src/visual_odometry/visual_feature/feature_tracker_node.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/feature_tracker_node.cpp.s
+.PHONY : src/visual_odometry/visual_feature/feature_tracker_node.cpp.s
+
+src/visual_odometry/visual_feature/parameters.o: src/visual_odometry/visual_feature/parameters.cpp.o
+.PHONY : src/visual_odometry/visual_feature/parameters.o
+
+# target to build an object file
+src/visual_odometry/visual_feature/parameters.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/parameters.cpp.o
+.PHONY : src/visual_odometry/visual_feature/parameters.cpp.o
+
+src/visual_odometry/visual_feature/parameters.i: src/visual_odometry/visual_feature/parameters.cpp.i
+.PHONY : src/visual_odometry/visual_feature/parameters.i
+
+# target to preprocess a source file
+src/visual_odometry/visual_feature/parameters.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/parameters.cpp.i
+.PHONY : src/visual_odometry/visual_feature/parameters.cpp.i
+
+src/visual_odometry/visual_feature/parameters.s: src/visual_odometry/visual_feature/parameters.cpp.s
+.PHONY : src/visual_odometry/visual_feature/parameters.s
+
+# target to generate assembly for a file
+src/visual_odometry/visual_feature/parameters.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/src/visual_odometry/visual_feature/parameters.cpp.s
+.PHONY : src/visual_odometry/visual_feature/parameters.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -249,10 +526,44 @@ help:
 	@echo "... test"
 	@echo "... emv-lio2_uninstall"
 	@echo "... uninstall"
+	@echo "... emv-lio2_visual_feature"
 	@echo "... test_node"
 	@echo "... src/test_node.o"
 	@echo "... src/test_node.i"
 	@echo "... src/test_node.s"
+	@echo "... src/visual_odometry/visual_feature/camera_models/Camera.o"
+	@echo "... src/visual_odometry/visual_feature/camera_models/Camera.i"
+	@echo "... src/visual_odometry/visual_feature/camera_models/Camera.s"
+	@echo "... src/visual_odometry/visual_feature/camera_models/CameraFactory.o"
+	@echo "... src/visual_odometry/visual_feature/camera_models/CameraFactory.i"
+	@echo "... src/visual_odometry/visual_feature/camera_models/CameraFactory.s"
+	@echo "... src/visual_odometry/visual_feature/camera_models/CataCamera.o"
+	@echo "... src/visual_odometry/visual_feature/camera_models/CataCamera.i"
+	@echo "... src/visual_odometry/visual_feature/camera_models/CataCamera.s"
+	@echo "... src/visual_odometry/visual_feature/camera_models/CostFunctionFactory.o"
+	@echo "... src/visual_odometry/visual_feature/camera_models/CostFunctionFactory.i"
+	@echo "... src/visual_odometry/visual_feature/camera_models/CostFunctionFactory.s"
+	@echo "... src/visual_odometry/visual_feature/camera_models/EquidistantCamera.o"
+	@echo "... src/visual_odometry/visual_feature/camera_models/EquidistantCamera.i"
+	@echo "... src/visual_odometry/visual_feature/camera_models/EquidistantCamera.s"
+	@echo "... src/visual_odometry/visual_feature/camera_models/PinholeCamera.o"
+	@echo "... src/visual_odometry/visual_feature/camera_models/PinholeCamera.i"
+	@echo "... src/visual_odometry/visual_feature/camera_models/PinholeCamera.s"
+	@echo "... src/visual_odometry/visual_feature/camera_models/ScaramuzzaCamera.o"
+	@echo "... src/visual_odometry/visual_feature/camera_models/ScaramuzzaCamera.i"
+	@echo "... src/visual_odometry/visual_feature/camera_models/ScaramuzzaCamera.s"
+	@echo "... src/visual_odometry/visual_feature/camera_models/gpl.o"
+	@echo "... src/visual_odometry/visual_feature/camera_models/gpl.i"
+	@echo "... src/visual_odometry/visual_feature/camera_models/gpl.s"
+	@echo "... src/visual_odometry/visual_feature/feature_tracker.o"
+	@echo "... src/visual_odometry/visual_feature/feature_tracker.i"
+	@echo "... src/visual_odometry/visual_feature/feature_tracker.s"
+	@echo "... src/visual_odometry/visual_feature/feature_tracker_node.o"
+	@echo "... src/visual_odometry/visual_feature/feature_tracker_node.i"
+	@echo "... src/visual_odometry/visual_feature/feature_tracker_node.s"
+	@echo "... src/visual_odometry/visual_feature/parameters.o"
+	@echo "... src/visual_odometry/visual_feature/parameters.i"
+	@echo "... src/visual_odometry/visual_feature/parameters.s"
 .PHONY : help
 
 

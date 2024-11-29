@@ -14,6 +14,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
+find_package(tf2_eigen REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
@@ -55,8 +56,36 @@ install(TARGETS test_node DESTINATION lib/${PROJECT_NAME})
 
 
 # Visual Feature Tracker
-# add_executable(${PROJECT_NAME}_visual_feature src/visual_odometry/visual_feature/*.cpp src/visual_odometry/visual_feature/camera_models/*.cc)
-# ament_target_dependencies(${PROJECT_NAME}_visual_feature rclcpp sensor_msgs std_msgs PCL OpenCV Ceres)
+add_executable(${PROJECT_NAME}_visual_feature
+        src/visual_odometry/visual_feature/feature_tracker.cpp
+        src/visual_odometry/visual_feature/feature_tracker_node.cpp
+        src/visual_odometry/visual_feature/parameters.cpp
+        src/visual_odometry/visual_feature/camera_models/Camera.cc
+        src/visual_odometry/visual_feature/camera_models/CostFunctionFactory.cc
+        src/visual_odometry/visual_feature/camera_models/ScaramuzzaCamera.cc
+        src/visual_odometry/visual_feature/camera_models/CameraFactory.cc
+        src/visual_odometry/visual_feature/camera_models/EquidistantCamera.cc
+        src/visual_odometry/visual_feature/camera_models/gpl.cc
+        src/visual_odometry/visual_feature/camera_models/CataCamera.cc
+        src/visual_odometry/visual_feature/camera_models/PinholeCamera.cc
+)
+
+ament_target_dependencies(${PROJECT_NAME}_visual_feature
+        rclcpp
+        sensor_msgs
+        std_msgs
+        geometry_msgs
+        nav_msgs
+        tf2
+        tf2_ros
+        tf2_eigen
+        PCL
+        pcl_conversions
+        cv_bridge
+        OpenCV
+        Ceres
+)
+
 
 # Visual Odometry
 # add_executable(${PROJECT_NAME}_visual_odometry src/visual_odometry/visual_estimator/*.cpp src/visual_odometry/visual_estimator/factor/*.cpp src/visual_odometry/visual_estimator/initial/*.cpp src/visual_odometry/visual_estimator/utility/*.cpp)

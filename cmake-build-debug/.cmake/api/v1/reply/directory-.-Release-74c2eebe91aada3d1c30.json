@@ -36,13 +36,13 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 49,
+				"line" : 55,
 				"parent" : 0
 			},
 			{
 				"command" : 5,
 				"file" : 0,
-				"line" : 200,
+				"line" : 240,
 				"parent" : 0
 			},
 			{
@@ -232,7 +232,7 @@
 				"test_node"
 			],
 			"targetId" : "test_node::@6890427a1f51a3e7e1df",
-			"targetIndex" : 1,
+			"targetIndex" : 2,
 			"type" : "target"
 		},
 		{
@@ -241,7 +241,7 @@
 			"cxxModuleBmiTarget" : 
 			{
 				"id" : "test_node::@6890427a1f51a3e7e1df",
-				"index" : 1
+				"index" : 2
 			},
 			"destination" : "lib/emv-lio2",
 			"type" : "cxxModuleBmi"

@@ -1,4 +1,4 @@
-/opt/clion-2024.2.2/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" -S /home/user/ros2_ws/src/emv-lio2 -B /home/user/ros2_ws/src/emv-lio2/cmake-build-debug
+/opt/clion-2024.2.2/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" -DPython_EXECUTABLE=/home/user/ros2_ws/src/emv-lio2/venv/bin/python -DPython3_EXECUTABLE=/home/user/ros2_ws/src/emv-lio2/venv/bin/python -S /home/user/ros2_ws/src/emv-lio2 -B /home/user/ros2_ws/src/emv-lio2/cmake-build-debug
 -- Found ament_cmake: 1.3.10 (/opt/ros/humble/share/ament_cmake/cmake)
 -- Found rclcpp: 16.0.10 (/opt/ros/humble/share/rclcpp/cmake)
 -- Found rosidl_generator_c: 3.1.5 (/opt/ros/humble/share/rosidl_generator_c/cmake)
@@ -12,6 +12,7 @@
 -- Found rclpy: 3.3.14 (/opt/ros/humble/share/rclpy/cmake)
 -- Found tf2: 0.25.8 (/opt/ros/humble/share/tf2/cmake)
 -- Found tf2_ros: 0.25.8 (/opt/ros/humble/share/tf2_ros/cmake)
+-- Found tf2_eigen: 0.25.8 (/opt/ros/humble/share/tf2_eigen/cmake)
 -- Found sensor_msgs: 4.2.4 (/opt/ros/humble/share/sensor_msgs/cmake)
 -- Found nav_msgs: 4.2.4 (/opt/ros/humble/share/nav_msgs/cmake)
 -- Found cv_bridge: 3.2.1 (/opt/ros/humble/share/cv_bridge/cmake)
@@ -32,7 +33,7 @@ Call Stack (most recent call first):
   /usr/lib/x86_64-linux-gnu/cmake/pcl/PCLConfig.cmake:543 (find_external_library)
   /opt/ros/humble/share/pcl_conversions/cmake/ament_cmake_export_dependencies-extras.cmake:21 (find_package)
   /opt/ros/humble/share/pcl_conversions/cmake/pcl_conversionsConfig.cmake:41 (include)
-  CMakeLists.txt:22 (find_package)
+  CMakeLists.txt:23 (find_package)
 This warning is for project developers.  Use -Wno-dev to suppress it.
 
 -- Eigen found (include: /usr/include/eigen3, version: 3.4.0)
@@ -53,7 +54,7 @@ Call Stack (most recent call first):
   /usr/lib/x86_64-linux-gnu/cmake/pcl/PCLConfig.cmake:543 (find_external_library)
   /opt/ros/humble/share/pcl_conversions/cmake/ament_cmake_export_dependencies-extras.cmake:21 (find_package)
   /opt/ros/humble/share/pcl_conversions/cmake/pcl_conversionsConfig.cmake:41 (include)
-  CMakeLists.txt:22 (find_package)
+  CMakeLists.txt:23 (find_package)
 This warning is for project developers.  Use -Wno-dev to suppress it.
 
 -- FLANN found (include: /usr/include, lib: /usr/lib/x86_64-linux-gnu/libflann_cpp.so)
@@ -89,7 +90,8 @@ This warning is for project developers.  Use -Wno-dev to suppress it.
 -- CERES_LIBRARIES = ceres
 -- Boost_LIBRARIES = Boost::filesystem;Boost::program_options;Boost::system
 -- OpenMP_CXX_FLAGS = -fopenmp
+-- OpenCV_LIBS = opencv_calib3d;opencv_core;opencv_dnn;opencv_features2d;opencv_flann;opencv_highgui;opencv_imgcodecs;opencv_imgproc;opencv_ml;opencv_objdetect;opencv_photo;opencv_stitching;opencv_video;opencv_videoio;opencv_alphamat;opencv_aruco;opencv_barcode;opencv_bgsegm;opencv_bioinspired;opencv_ccalib;opencv_datasets;opencv_dnn_objdetect;opencv_dnn_superres;opencv_dpm;opencv_face;opencv_freetype;opencv_fuzzy;opencv_hdf;opencv_hfs;opencv_img_hash;opencv_intensity_transform;opencv_line_descriptor;opencv_mcc;opencv_optflow;opencv_phase_unwrapping;opencv_plot;opencv_quality;opencv_rapid;opencv_reg;opencv_rgbd;opencv_saliency;opencv_shape;opencv_stereo;opencv_structured_light;opencv_superres;opencv_surface_matching;opencv_text;opencv_tracking;opencv_videostab;opencv_viz;opencv_wechat_qrcode;opencv_ximgproc;opencv_xobjdetect;opencv_xphoto;opencv_calib3d;opencv_core;opencv_dnn;opencv_features2d;opencv_flann;opencv_highgui;opencv_imgcodecs;opencv_imgproc;opencv_ml;opencv_objdetect;opencv_photo;opencv_stitching;opencv_video;opencv_videoio;opencv_alphamat;opencv_aruco;opencv_barcode;opencv_bgsegm;opencv_bioinspired;opencv_ccalib;opencv_datasets;opencv_dnn_objdetect;opencv_dnn_superres;opencv_dpm;opencv_face;opencv_freetype;opencv_fuzzy;opencv_hdf;opencv_hfs;opencv_img_hash;opencv_intensity_transform;opencv_line_descriptor;opencv_mcc;opencv_optflow;opencv_phase_unwrapping;opencv_plot;opencv_quality;opencv_rapid;opencv_reg;opencv_rgbd;opencv_saliency;opencv_shape;opencv_stereo;opencv_structured_light;opencv_superres;opencv_surface_matching;opencv_text;opencv_tracking;opencv_videostab;opencv_viz;opencv_wechat_qrcode;opencv_ximgproc;opencv_xobjdetect;opencv_xphoto
 -- ===== End of Selected CMake Variables =====
--- Configuring done (2.0s)
--- Generating done (0.0s)
+-- Configuring done (2.3s)
+-- Generating done (0.1s)
 -- Build files have been written to: /home/user/ros2_ws/src/emv-lio2/cmake-build-debug

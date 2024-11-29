@@ -276,6 +276,9 @@ EXPAT_INCLUDE_DIR:PATH=/usr/include
 //Path to a library.
 EXPAT_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libexpat.so
 
+//The directory containing a CMake configuration file for Eigen3.
+Eigen3_DIR:PATH=/usr/share/eigen3/cmake
+
 //Eigen include directory
 Eigen3_INCLUDE_DIR:PATH=/usr/include/eigen3
 
@@ -701,8 +704,11 @@ PNG_LIBRARY_RELEASE:FILEPATH=/usr/lib/x86_64-linux-gnu/libpng.so
 //Path to a file.
 PNG_PNG_INCLUDE_DIR:PATH=/usr/include
 
-//Path to a program.
-Python3_EXECUTABLE:FILEPATH=/usr/bin/python3
+//No help, variable specified on the command line.
+Python3_EXECUTABLE:UNINITIALIZED=/home/user/ros2_ws/src/emv-lio2/venv/bin/python
+
+//No help, variable specified on the command line.
+Python_EXECUTABLE:UNINITIALIZED=/home/user/ros2_ws/src/emv-lio2/venv/bin/python
 
 //The directory containing a CMake configuration file for Qhull.
 Qhull_DIR:PATH=/usr/lib/x86_64-linux-gnu/cmake/Qhull
@@ -1310,6 +1316,9 @@ geometry_msgs_DIR:PATH=/opt/ros/humble/share/geometry_msgs/cmake
 //The directory containing a CMake configuration file for gflags.
 gflags_DIR:PATH=/usr/lib/x86_64-linux-gnu/cmake/gflags
 
+//Path to a library.
+lib:FILEPATH=/usr/lib/x86_64-linux-gnu/libpcl_common.so
+
 //The directory containing a CMake configuration file for libstatistics_collector.
 libstatistics_collector_DIR:PATH=/opt/ros/humble/share/libstatistics_collector/cmake
 
@@ -1486,6 +1495,9 @@ std_msgs_DIR:PATH=/opt/ros/humble/share/std_msgs/cmake
 
 //The directory containing a CMake configuration file for tf2.
 tf2_DIR:PATH=/opt/ros/humble/share/tf2/cmake
+
+//The directory containing a CMake configuration file for tf2_eigen.
+tf2_eigen_DIR:PATH=/opt/ros/humble/share/tf2_eigen/cmake
 
 //The directory containing a CMake configuration file for tf2_msgs.
 tf2_msgs_DIR:PATH=/opt/ros/humble/share/tf2_msgs/cmake
@@ -1673,6 +1685,8 @@ EIGEN_INCLUDE_DIR-ADVANCED:INTERNAL=1
 EXPAT_INCLUDE_DIR-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: EXPAT_LIBRARY
 EXPAT_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Eigen3_DIR
+Eigen3_DIR-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: Eigen3_INCLUDE_DIR
 Eigen3_INCLUDE_DIR-ADVANCED:INTERNAL=1
 //Details about finding Boost
@@ -1744,7 +1758,7 @@ FIND_PACKAGE_MESSAGE_DETAILS_PCL_TRACKING:INTERNAL=[/usr/lib/x86_64-linux-gnu/li
 //Details about finding PCL_VISUALIZATION
 FIND_PACKAGE_MESSAGE_DETAILS_PCL_VISUALIZATION:INTERNAL=[/usr/lib/x86_64-linux-gnu/libpcl_visualization.so][/usr/include/pcl-1.12][v()]
 //Details about finding Python3
-FIND_PACKAGE_MESSAGE_DETAILS_Python3:INTERNAL=[/usr/bin/python3][cfound components: Interpreter ][v3.10.12()]
+FIND_PACKAGE_MESSAGE_DETAILS_Python3:INTERNAL=[/home/user/ros2_ws/src/emv-lio2/venv/bin/python][cfound components: Interpreter ][v3.10.12()]
 //Details about finding Threads
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
 //Details about finding libusb
@@ -2567,10 +2581,10 @@ _OPENSSL_openssl_VERSION:INTERNAL=
 _Python3_Compiler_REASON_FAILURE:INTERNAL=
 //Development reason failure
 _Python3_Development_REASON_FAILURE:INTERNAL=
-_Python3_EXECUTABLE:INTERNAL=/usr/bin/python3
+_Python3_EXECUTABLE:INTERNAL=/home/user/ros2_ws/src/emv-lio2/venv/bin/python
 //Python3 Properties
-_Python3_INTERPRETER_PROPERTIES:INTERNAL=Python;3;10;12;64;32;;cpython-310-x86_64-linux-gnu;abi3;/usr/lib/python3.10;/usr/lib/python3.10;/usr/local/lib/python3.10/dist-packages;/usr/local/lib/python3.10/dist-packages
-_Python3_INTERPRETER_SIGNATURE:INTERNAL=0f3e53742e142b1d9e50e4ca5b901dd8
+_Python3_INTERPRETER_PROPERTIES:INTERNAL=Python;3;10;12;64;32;;cpython-310-x86_64-linux-gnu;abi3;/usr/lib/python3.10;/home/user/ros2_ws/src/emv-lio2/venv/lib/python3.10;/home/user/ros2_ws/src/emv-lio2/venv/lib/python3.10/site-packages;/home/user/ros2_ws/src/emv-lio2/venv/lib/python3.10/site-packages
+_Python3_INTERPRETER_SIGNATURE:INTERNAL=c084cf5bdf10f63d5b9a3389b436a505
 //NumPy reason failure
 _Python3_NumPy_REASON_FAILURE:INTERNAL=
 __pkg_config_arguments_PC_EIGEN:INTERNAL=eigen3

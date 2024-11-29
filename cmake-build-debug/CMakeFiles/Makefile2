@@ -64,6 +64,7 @@ CMAKE_BINARY_DIR = /home/user/ros2_ws/src/emv-lio2/cmake-build-debug
 
 # The main recursive "all" target.
 all: CMakeFiles/test_node.dir/all
+all: CMakeFiles/emv-lio2_visual_feature.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -74,6 +75,7 @@ preinstall:
 clean: CMakeFiles/uninstall.dir/clean
 clean: CMakeFiles/emv-lio2_uninstall.dir/clean
 clean: CMakeFiles/test_node.dir/clean
+clean: CMakeFiles/emv-lio2_visual_feature.dir/clean
 .PHONY : clean
 
 #=============================================================================
@@ -135,7 +137,7 @@ CMakeFiles/emv-lio2_uninstall.dir/clean:
 CMakeFiles/test_node.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_node.dir/build.make CMakeFiles/test_node.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_node.dir/build.make CMakeFiles/test_node.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/user/ros2_ws/src/emv-lio2/cmake-build-debug/CMakeFiles --progress-num=1,2 "Built target test_node"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/user/ros2_ws/src/emv-lio2/cmake-build-debug/CMakeFiles --progress-num=13,14 "Built target test_node"
 .PHONY : CMakeFiles/test_node.dir/all
 
 # Build rule for subdir invocation for target.
@@ -153,6 +155,32 @@ test_node: CMakeFiles/test_node.dir/rule
 CMakeFiles/test_node.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_node.dir/build.make CMakeFiles/test_node.dir/clean
 .PHONY : CMakeFiles/test_node.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/emv-lio2_visual_feature.dir
+
+# All Build rule for target.
+CMakeFiles/emv-lio2_visual_feature.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/user/ros2_ws/src/emv-lio2/cmake-build-debug/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11,12 "Built target emv-lio2_visual_feature"
+.PHONY : CMakeFiles/emv-lio2_visual_feature.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/emv-lio2_visual_feature.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/user/ros2_ws/src/emv-lio2/cmake-build-debug/CMakeFiles 12
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/emv-lio2_visual_feature.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/user/ros2_ws/src/emv-lio2/cmake-build-debug/CMakeFiles 0
+.PHONY : CMakeFiles/emv-lio2_visual_feature.dir/rule
+
+# Convenience name for target.
+emv-lio2_visual_feature: CMakeFiles/emv-lio2_visual_feature.dir/rule
+.PHONY : emv-lio2_visual_feature
+
+# clean rule for target.
+CMakeFiles/emv-lio2_visual_feature.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/emv-lio2_visual_feature.dir/build.make CMakeFiles/emv-lio2_visual_feature.dir/clean
+.PHONY : CMakeFiles/emv-lio2_visual_feature.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.
