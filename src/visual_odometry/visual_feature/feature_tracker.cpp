@@ -11,7 +11,7 @@ bool inBorder(const cv::Point2f &pt)
     return BORDER_SIZE <= img_x && img_x < COL - BORDER_SIZE && BORDER_SIZE <= img_y && img_y < ROW - BORDER_SIZE;
 }
 
-void reduceVector(vector<cv::Point2f> &v, vector<uchar> status)
+void reduceVector(std::vector<cv::Point2f> &v, std::vector<uchar> status)
 {
     int j = 0;
     for (int i = 0; i < int(v.size()); i++)
@@ -20,7 +20,7 @@ void reduceVector(vector<cv::Point2f> &v, vector<uchar> status)
     v.resize(j);
 }
 
-void reduceVector(vector<int> &v, vector<uchar> status)
+void reduceVector(std::vector<int> &v, std::vector<uchar> status)
 {
     int j = 0;
     for (int i = 0; i < int(v.size()); i++)
@@ -28,10 +28,10 @@ void reduceVector(vector<int> &v, vector<uchar> status)
         if (status[i])
         {
             v[j++] = v[i];
-            // cout << "status True " << i << endl;
+            // cout << "status True " << i << std::endl;
         }
         // else
-            // cout << "status False " << i << endl;
+            // cout << "status False " << i << std::endl;
     }
     v.resize(j);
 }
@@ -50,12 +50,12 @@ void FeatureTracker::setMask()
     
 
     // prefer to keep features that are tracked for long time
-    vector<pair<int, pair<cv::Point2f, int>>> cnt_pts_id;
+    std::vector<std::pair<int, std::pair<cv::Point2f, int>>> cnt_pts_id;
 
     for (unsigned int i = 0; i < forw_pts.size(); i++)
-        cnt_pts_id.push_back(make_pair(track_cnt[i], make_pair(forw_pts[i], ids[i])));
+        cnt_pts_id.push_back(std::make_pair(track_cnt[i], std::make_pair(forw_pts[i], ids[i])));
 
-    sort(cnt_pts_id.begin(), cnt_pts_id.end(), [](const pair<int, pair<cv::Point2f, int>> &a, const pair<int, pair<cv::Point2f, int>> &b)
+    sort(cnt_pts_id.begin(), cnt_pts_id.end(), [](const std::pair<int, std::pair<cv::Point2f, int>> &a, const std::pair<int, std::pair<cv::Point2f, int>> &b)
          {
             return a.first > b.first;
          });
@@ -117,8 +117,8 @@ void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time)
     if (cur_pts.size() > 0)
     {
         TicToc t_o;
-        vector<uchar> status;
-        vector<float> err;
+        std::vector<uchar> status;
+        std::vector<float> err;
         // 从cur_pts到forw_pts做LK金字塔光流法
         cv::calcOpticalFlowPyrLK(cur_img, forw_img, cur_pts, forw_pts, status, err, cv::Size(21, 21), 3);
 
@@ -159,11 +159,11 @@ void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time)
         if (n_max_cnt > 0)
         {
             if(mask.empty())
-                cout << "mask is empty " << endl;
+                std::cout << "mask is empty " << std::endl;
             if (mask.type() != CV_8UC1)
-                cout << "mask type wrong " << endl;
+                std::cout << "mask type wrong " << std::endl;
             if (mask.size() != forw_img.size())
-                cout << "wrong size " << endl;
+                std::cout << "wrong size " << std::endl;
             // 寻找新的特征点(shi-tomasi角点)，添加(MAX_CNT - forw_pts.size())个点以确保每帧都有足够的特征点
             cv::goodFeaturesToTrack(forw_img, n_pts, MAX_CNT - forw_pts.size(), 0.01, MIN_DIST, mask);
         }
@@ -192,14 +192,14 @@ void FeatureTracker::rejectWithF()
     {
         //ROS_DEBUG("FM ransac begins");
         TicToc t_f;
-        vector<cv::Point2f> un_cur_pts(cur_pts.size()), un_forw_pts(forw_pts.size());
+        std::vector<cv::Point2f> un_cur_pts(cur_pts.size()), un_forw_pts(forw_pts.size());
         for (unsigned int i = 0; i < cur_pts.size(); i++)
         {
             Eigen::Vector3d tmp_p(0, 0, 0);
-            // cout << "tmp_p !" << i << " " << tmp_p.transpose() << endl;
+            // std::cout << "tmp_p !" << i << " " << tmp_p.transpose() << std::endl;
             m_camera->liftProjective(Eigen::Vector2d(cur_pts[i].x, cur_pts[i].y), tmp_p);
 
-            // cout << "tmp_p " << i << " " << tmp_p.transpose() << endl;
+            // std::cout << "tmp_p " << i << " " << tmp_p.transpose() << std::endl;
 
             tmp_p.x() = FOCAL_LENGTH * tmp_p.x() / tmp_p.z() + COL / 2.0;
             tmp_p.y() = FOCAL_LENGTH * tmp_p.y() / tmp_p.z() + ROW / 2.0;
@@ -212,7 +212,7 @@ void FeatureTracker::rejectWithF()
             un_forw_pts[i] = cv::Point2f(tmp_p.x(), tmp_p.y());
         }
 
-        vector<uchar> status;
+        std::vector<uchar> status;
         cv::findFundamentalMat(un_cur_pts, un_forw_pts, cv::FM_RANSAC, F_THRESHOLD, 0.99, status);
         int size_a = cur_pts.size();
         reduceVector(prev_pts, status);
@@ -238,16 +238,16 @@ bool FeatureTracker::updateID(unsigned int i)
         return false;
 }
 
-void FeatureTracker::readIntrinsicParameter(const string &calib_file)
+void FeatureTracker::readIntrinsicParameter(const std::string &calib_file)
 {
     //ROS_INFO("reading paramerter of camera %s", calib_file.c_str());
     m_camera = camodocal::CameraFactory::instance()->generateCameraFromYamlFile(calib_file);
 }
 
-void FeatureTracker::showUndistortion(const string &name)
+void FeatureTracker::showUndistortion(const std::string &name)
 {
     cv::Mat undistortedImg(ROW + 600, COL + 600, CV_8UC1, cv::Scalar(0));
-    vector<Eigen::Vector2d> distortedp, undistortedp;
+    std::vector<Eigen::Vector2d> distortedp, undistortedp;
     for (int i = 0; i < COL; i++)
         for (int j = 0; j < ROW; j++)
         {
@@ -264,7 +264,7 @@ void FeatureTracker::showUndistortion(const string &name)
         pp.at<float>(0, 0) = undistortedp[i].x() * FOCAL_LENGTH + COL / 2;
         pp.at<float>(1, 0) = undistortedp[i].y() * FOCAL_LENGTH + ROW / 2;
         pp.at<float>(2, 0) = 1.0;
-        //cout << trackerData[0].K << endl;
+        //std::cout << trackerData[0].K << endl;
         //printf("%lf %lf\n", p.at<float>(1, 0), p.at<float>(0, 0));
         //printf("%lf %lf\n", pp.at<float>(1, 0), pp.at<float>(0, 0));
         if (pp.at<float>(1, 0) + 300 >= 0 && pp.at<float>(1, 0) + 300 < ROW + 600 && pp.at<float>(0, 0) + 300 >= 0 && pp.at<float>(0, 0) + 300 < COL + 600)
@@ -291,7 +291,7 @@ void FeatureTracker::undistortedPoints()
         Eigen::Vector3d b;
         m_camera->liftProjective(a, b);
         cur_un_pts.push_back(cv::Point2f(b.x() / b.z(), b.y() / b.z()));
-        cur_un_pts_map.insert(make_pair(ids[i], cv::Point2f(b.x() / b.z(), b.y() / b.z())));
+        cur_un_pts_map.insert(std::make_pair(ids[i], cv::Point2f(b.x() / b.z(), b.y() / b.z())));
         //printf("cur pts id %d %f %f", ids[i], cur_un_pts[i].x, cur_un_pts[i].y);
     }
     // caculate points velocity

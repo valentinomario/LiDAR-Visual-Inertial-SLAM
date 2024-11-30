@@ -5,7 +5,7 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
     robot_description = PathJoinSubstitution([
-        FindPackageShare("emv-lio2"),
+        FindPackageShare("emv_lio2"),
         "launch",
         "include",
         "config",

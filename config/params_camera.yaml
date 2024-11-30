@@ -1,7 +1,7 @@
 %YAML:1.0
 
 # Project
-project_name: "emv-lio2"
+project_name: "emv_lio2"
 
 #common parameters
 imu_topic: "/imu_data"

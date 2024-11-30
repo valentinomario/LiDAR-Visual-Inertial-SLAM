@@ -5,7 +5,7 @@ from launch_ros.substitutions import FindPackageShare
 import os
 
 def generate_launch_description():
-    emv_lio_share = FindPackageShare("emv-lio2").find("emv-lio2")
+    emv_lio_share = FindPackageShare("emv_lio2").find("emv_lio2")
     launch_dir = os.path.join(emv_lio_share, 'launch', 'include')
 
     return LaunchDescription([

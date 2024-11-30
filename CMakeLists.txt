@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 cmake_policy(SET CMP0074 NEW)
-project(emv-lio2)
+project(emv_lio2)
 
 # CMake flags
 set(CMAKE_BUILD_TYPE Release)

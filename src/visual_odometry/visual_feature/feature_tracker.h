@@ -29,14 +29,14 @@
 #include <tf2_ros/buffer.h>
 #include <tf2_eigen/tf2_eigen.hpp>
 
-// using namespace std;
+//using namespace std;
 // using namespace camodocal;
 // using namespace Eigen;
 
 bool inBorder(const cv::Point2f &pt);
 
-void reduceVector(vector<cv::Point2f> &v, vector<uchar> status);
-void reduceVector(vector<int> &v, vector<uchar> status);
+void reduceVector(std::vector<cv::Point2f> &v, std::vector<uchar> status);
+void reduceVector(std::vector<int> &v, std::vector<uchar> status);
 
 class FeatureTracker
 {
@@ -51,9 +51,9 @@ class FeatureTracker
 
     bool updateID(unsigned int i);
 
-    void readIntrinsicParameter(const string &calib_file);
+    void readIntrinsicParameter(const std::string &calib_file);
 
-    void showUndistortion(const string &name);
+    void showUndistortion(const std::string &name);
 
     void rejectWithF();
 
@@ -62,14 +62,14 @@ class FeatureTracker
     cv::Mat mask;
     cv::Mat fisheye_mask;
     cv::Mat prev_img, cur_img, forw_img;
-    vector<cv::Point2f> n_pts;
-    vector<cv::Point2f> prev_pts, cur_pts, forw_pts;
-    vector<cv::Point2f> prev_un_pts, cur_un_pts;
-    vector<cv::Point2f> pts_velocity;
-    vector<int> ids;
-    vector<int> track_cnt;
-    map<int, cv::Point2f> cur_un_pts_map;
-    map<int, cv::Point2f> prev_un_pts_map;
+    std::vector<cv::Point2f> n_pts;
+    std::vector<cv::Point2f> prev_pts, cur_pts, forw_pts;
+    std::vector<cv::Point2f> prev_un_pts, cur_un_pts;
+    std::vector<cv::Point2f> pts_velocity;
+    std::vector<int> ids;
+    std::vector<int> track_cnt;
+    std::map<int, cv::Point2f> cur_un_pts_map;
+    std::map<int, cv::Point2f> prev_un_pts_map;
     camodocal::CameraPtr m_camera;
     double cur_time;
     double prev_time;
@@ -95,7 +95,7 @@ public:
     std::shared_ptr<tf2_ros::TransformListener> tf_listener;
 
     const int num_bins = 360;
-    vector<vector<PointType>> pointsArray;
+    std::vector<std::vector<PointType>> pointsArray;
 
     DepthRegister(std::shared_ptr<rclcpp::Node> node_in):
     node(node_in)
@@ -120,7 +120,7 @@ public:
     sensor_msgs::msg::ChannelFloat32 get_depth(const rclcpp::Time &stamp_cur, const cv::Mat &imageCur,
                                            const pcl::PointCloud<PointType>::Ptr &depthCloud,
                                            const camodocal::CameraPtr &camera_model,
-                                           const vector<geometry_msgs::msg::Point32> &features_2d,
+                                           const std::vector<geometry_msgs::msg::Point32> &features_2d,
                                            int cam_id)
     {
 
@@ -145,7 +145,7 @@ public:
 
             // listener.waitForTransform("vins_world", "vins_body_ros", stamp_cur, ros::Duration(0.01));
             // listener.lookupTransform("vins_world", "vins_body_ros", stamp_cur, transform);
-        } 
+        }
         catch (tf2::TransformException ex)
         {
             RCLCPP_WARN(node->get_logger(), "Transform failed: %s", ex.what()); // TODO: remove
@@ -224,7 +224,7 @@ public:
         {
             PointType p = depth_cloud_local->points[i];
             depth_cloud_all->points.push_back(p);
-            
+
             // find row id in range image
             float row_angle = atan2(p.z, sqrt(p.x * p.x + p.y * p.y)) * 180.0 / M_PI + 90.0; // degrees, bottom -> up, 0 -> 360
             int row_id = round(row_angle / bin_res);
@@ -277,8 +277,8 @@ public:
         kdtree->setInputCloud(depth_cloud_unit_sphere);
 
         // 7. find the feature depth using kd-tree
-        vector<int> pointSearchInd;
-        vector<float> pointSearchSqDis;
+        std::vector<int> pointSearchInd;
+        std::vector<float> pointSearchSqDis;
         float dist_sq_threshold = pow(sin(bin_res / 180.0 * M_PI) * 5.0, 2);
         Eigen::Matrix3d R_cam2lidar;
         R_cam2lidar = Eigen::AngleAxisd(c_l_rz, Eigen::Vector3d::UnitZ()) *
@@ -289,7 +289,7 @@ public:
                        R_cam2lidar(1,0), R_cam2lidar(1,1), R_cam2lidar(1,2), t_cam2lidar(1),
                        R_cam2lidar(2,0), R_cam2lidar(2,1), R_cam2lidar(2,2), t_cam2lidar(2),
                        0, 0, 0, 1;
-        
+
         for (int i = 0; i < (int)features_3d_sphere->size(); ++i)
         {
             kdtree->nearestKSearch(features_3d_sphere->points[i], 3, pointSearchInd, pointSearchSqDis);
@@ -316,20 +316,20 @@ public:
                                   features_3d_sphere->points[i].z);
 
                 Eigen::Vector3f N = (A - B).cross(B - C);
-                float s = (N(0) * A(0) + N(1) * A(1) + N(2) * A(2)) 
+                float s = (N(0) * A(0) + N(1) * A(1) + N(2) * A(2))
                         / (N(0) * V(0) + N(1) * V(1) + N(2) * V(2));
 
-                float min_depth = min(r1, min(r2, r3));
-                float max_depth = max(r1, max(r2, r3));
+                float min_depth = std::min(r1, std::min(r2, r3));
+                float max_depth = std::max(r1, std::max(r2, r3));
                 if (max_depth - min_depth > 2 || s <= 0.5)
                 {
                     continue;
                 }
-                else if (s - max_depth > 0) 
+                else if (s - max_depth > 0)
                 {
                     s = max_depth;
                 }
-                else if (s - min_depth < 0) 
+                else if (s - min_depth < 0)
                 {
                     s = min_depth;
                 }
@@ -338,10 +338,10 @@ public:
                 features_3d_sphere->points[i].y *= s;
                 features_3d_sphere->points[i].z *= s;
                 // the obtained depth here is for unit sphere, VINS estimator needs depth for normalized feature (by value z), (lidar x = camera z)
-                
+
                 // debug by sbq
-                Eigen::Vector4d visual_features_in_lidar(features_3d_sphere->points[i].x, 
-                                                         features_3d_sphere->points[i].y, 
+                Eigen::Vector4d visual_features_in_lidar(features_3d_sphere->points[i].x,
+                                                         features_3d_sphere->points[i].y,
                                                          features_3d_sphere->points[i].z,
                                                          1);
                 Eigen::Vector4d visual_features_in_cam;
@@ -360,7 +360,7 @@ public:
             publishCloud(pub_depth_feature_1, features_3d_sphere, stamp_cur, "vins_body_ros");
         else if(cam_id == 2)
             publishCloud(pub_depth_feature_2, features_3d_sphere, stamp_cur, "vins_body_ros");
-            
+
         // update depth value for return
         for (int i = 0; i < (int)features_3d_sphere->size(); ++i)
         {
@@ -371,8 +371,8 @@ public:
         // visualization project points on image for visualization (it's slow!)
         if (pub_depth_image->get_subscription_count() != 0)
         {
-            vector<cv::Point2f> points_2d;
-            vector<float> points_distance;
+            std::vector<cv::Point2f> points_2d;
+            std::vector<float> points_distance;
 
             for (int i = 0; i < (int)depth_cloud_local->size(); ++i)
             {

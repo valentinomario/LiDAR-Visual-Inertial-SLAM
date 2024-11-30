@@ -35,16 +35,15 @@
 #include <cmath>
 #include <glog/logging.h>
 
-using namespace std;
+// using namespace std;
 
 typedef pcl::PointXYZI PointType;
 
-// Dichiarazioni dei parametri globali
 extern int ROW;
 extern int COL;
 extern int FOCAL_LENGTH;
 
-// Parametri definiti nel file YAML
+const int NUM_OF_CAM_ALL = 2; // TODO: cani
 extern int NUM_OF_CAM;
 extern int num_of_cam;
 extern std::string PROJECT_NAME;
