@@ -95,7 +95,7 @@ extern Eigen::Matrix3d extRot_lidar2imu;
 extern Eigen::Vector3d extTrans_lidar2imu;
 
 // Funzione per leggere i parametri
-void readParameters(std::shared_ptr<rclcpp::Node> node);
+void readParameters(const std::string& config_path);
 
 // Calcola la distanza tra punti
 float pointDistance(PointType p);

@@ -50,28 +50,13 @@ double C_L_RZ2;
 int USE_LIDAR;
 int LIDAR_SKIP;
 
-std::vector<double> extRotV_lidar2imu;
-std::vector<double> extTransV_lidar2imu;
+
 Eigen::Matrix3d extRot_lidar2imu;
 Eigen::Vector3d extTrans_lidar2imu;
 
-void readParameters(std::shared_ptr<rclcpp::Node> node)
+void readParameters(const std::string& config_path)
 {
-    // Lidars parameters
-    node->declare_parameter<std::string>("PROJECT_NAME", "emv-lio2");
-    node->get_parameter("PROJECT_NAME", PROJECT_NAME);
 
-    extRotV_lidar2imu = node->declare_parameter<std::vector<double>>(PROJECT_NAME + ".extrinsicRot", {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0});
-    extTransV_lidar2imu = node->declare_parameter<std::vector<double>>(PROJECT_NAME + ".extrinsicTrans", {0.0,0.0,0.0});
-    extRot_lidar2imu = Eigen::Map<const Eigen::Matrix<double, -1, -1, Eigen::RowMajor>>(extRotV_lidar2imu.data(), 3, 3);
-    extTrans_lidar2imu = Eigen::Map<const Eigen::Matrix<double, -1, -1, Eigen::RowMajor>>(extTransV_lidar2imu.data(), 3, 1);
-
-    NUM_OF_CAM = node->declare_parameter<int>(PROJECT_NAME + ".NUM_OF_CAM", 1);
-    RCLCPP_INFO(node->get_logger(), "\033[1;32mTEST\033[0m");
-
-    // Load config files
-    // std::string pkg_path = ament_index_cpp::get_package_share_directory(PROJECT_NAME);
-    std::string config_path = node->declare_parameter<std::string>("config_dir", "/home/user/ros2_ws/install/emv-lio2/share/emv-lio2/config");
     std::string config_file = config_path + "/params_camera.yaml";
     std::string config_file1 = config_path + "/params_camera1.yaml";
     std::string config_file2 = config_path + "/params_camera2.yaml";
@@ -79,12 +64,12 @@ void readParameters(std::shared_ptr<rclcpp::Node> node)
     cv::FileStorage fsSettings(config_file, cv::FileStorage::READ);
     cv::FileStorage fsSettings1(config_file1, cv::FileStorage::READ);
     cv::FileStorage fsSettings2(config_file2, cv::FileStorage::READ);
-
+    /*
     if (!fsSettings.isOpened() || !fsSettings1.isOpened() || !fsSettings2.isOpened())
     {
-        RCLCPP_ERROR(node->get_logger(), "ERROR: Wrong path to settings: %s", config_path.c_str());
+        RCLCPP_ERROR(node->get_logger(), "ERROR: Wrong path to settings: %s", config_path.c_str()); // TODO throw exception maybe
         return;
-    }
+    }*/
 
     // Sensor topics
     fsSettings["image_topic"] >> IMAGE_TOPIC_0;
