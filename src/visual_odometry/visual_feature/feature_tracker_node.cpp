@@ -3,6 +3,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include <message_filters/subscriber.h>
 #include <message_filters/sync_policies/approximate_time.h>
+#include <sensor_msgs/msg/point_cloud.hpp>
 
 std::mutex mtx_lidar;
 pcl::PointCloud<PointType>::Ptr depthCloud(new pcl::PointCloud<PointType>());
@@ -83,6 +84,12 @@ public:
             std::bind(&FeatureTrackerNode::lidar_callback, this, std::placeholders::_1));
 
 
+        pub_feature = this->create_publisher<sensor_msgs::msg::PointCloud>(PROJECT_NAME + "/vins/feature/feature", 5);
+        pub_feature_1 = this->create_publisher<sensor_msgs::msg::PointCloud>(PROJECT_NAME + "/vins/feature/feature_1", 5);
+        pub_match = this->create_publisher<sensor_msgs::msg::Image>(PROJECT_NAME + "/vins/feature/feature_img", 5);
+        pub_match_1 = this->create_publisher<sensor_msgs::msg::Image>(PROJECT_NAME + "/vins/feature/feature_img_1", 5);
+
+        pub_restart = this->create_publisher<std_msgs::msg::Bool>(PROJECT_NAME + "/vins/feature/restart", 5);
 
 
 
@@ -97,9 +104,229 @@ private:
     {
         // https://stackoverflow.com/questions/76568459/ros2-synchronizer-register-callback-inside-a-class-problem
 
-        static int i = 0;
-        RCLCPP_INFO(this->get_logger(), "Lidar callback works TODO remove this log %d", i);
-        i++;
+        double cur_img_time = rclcpp::Time(img0.header.stamp).seconds();
+        // 1、Whether is the first frame
+        if(first_image_flag)
+        {
+            first_image_flag = false;
+            first_image_time = cur_img_time;
+            last_image_time = cur_img_time;
+            return;
+        }
+
+        // 2、Detect unstable camera stream
+        if (cur_img_time - last_image_time > 1.0 || cur_img_time < last_image_time)
+        {
+            RCLCPP_WARN(this->get_logger(), "Image discontinuity detected! Resetting feature tracker.");
+            first_image_flag = true;
+            last_image_time = 0;
+            pub_count = 1;
+            auto restart_flag = std_msgs::msg::Bool();
+            restart_flag.data = true;
+            pub_restart->publish(restart_flag);
+            return;
+        }
+        last_image_time = cur_img_time;
+        // frequency control
+        if (round(1.0 * pub_count / (cur_img_time - first_image_time)) <= FREQ)
+        {
+            PUB_THIS_FRAME = true;
+            // reset the frequency control
+            if (abs(1.0 * pub_count / (cur_img_time - first_image_time) - FREQ) < 0.01 * FREQ)
+            {
+                first_image_time = cur_img_time;
+                pub_count = 0;
+            }
+        }
+        else
+        {
+            PUB_THIS_FRAME = false;
+        }
+
+
+        // 3、Turn 8UC1 into mono8
+        cv_bridge::CvImageConstPtr cv_ptr0, cv_ptr1;
+        try
+        {
+            cv_ptr0 = cv_bridge::toCvShare(std::make_shared<sensor_msgs::msg::Image>(img0), sensor_msgs::image_encodings::MONO8);
+            cv_ptr1 = cv_bridge::toCvShare(std::make_shared<sensor_msgs::msg::Image>(img1), sensor_msgs::image_encodings::MONO8);
+        }
+        catch (cv_bridge::Exception &e)
+        {
+            RCLCPP_ERROR(this->get_logger(), "cv_bridge exception: %s", e.what());
+            return;
+        }
+
+        cv::Mat show_img_0 = cv_ptr0->image;
+        cv::Mat show_img_1 = cv_ptr1->image;
+
+
+        // 4、Process images and extract visual features
+        // TODO: put two images together so that the code can be simplified using for loop
+        trackerData[0].readImage(cv_ptr0->image, cur_img_time);
+        trackerData[1].readImage(cv_ptr1->image, cur_img_time);
+        #if SHOW_UNDISTORTION
+            trackerData[0].showUndistortion("undistortion_" + std::to_string(i));
+        #endif
+
+
+        // 5、Update features' id
+        for (unsigned int i = 0;; i++)
+        {
+            bool completed = false;
+            for (int j = 0; j < NUM_OF_CAM; j++)
+                completed |= trackerData[j].updateID(i);
+            if (!completed)
+                break;
+        }
+
+        // 6、Package the information of all visual features
+        if (PUB_THIS_FRAME)
+        {
+            pub_count++;
+            auto feature_points_0 = std::make_shared<sensor_msgs::msg::PointCloud>();
+            auto feature_points_1 = std::make_shared<sensor_msgs::msg::PointCloud>();
+
+            feature_points_0->header.stamp = img0.header.stamp;
+            feature_points_0->header.frame_id = "vins_body";
+            feature_points_1->header.stamp = img1.header.stamp;
+            feature_points_1->header.frame_id = "vins_body";
+
+            std::vector<std::set<int>> hash_ids(NUM_OF_CAM);
+            for (int i = 0; i < NUM_OF_CAM; i++)
+            {
+                sensor_msgs::msg::ChannelFloat32 id_of_point;
+                sensor_msgs::msg::ChannelFloat32 u_of_point;
+                sensor_msgs::msg::ChannelFloat32 v_of_point;
+                sensor_msgs::msg::ChannelFloat32 velocity_x_of_point;
+                sensor_msgs::msg::ChannelFloat32 velocity_y_of_point;
+
+                auto &un_pts = trackerData[i].cur_un_pts;
+                auto &cur_pts = trackerData[i].cur_pts;
+                auto &ids = trackerData[i].ids;
+                auto &pts_velocity = trackerData[i].pts_velocity;
+
+                for (unsigned int j = 0; j < ids.size(); j++)
+                {
+                    if (trackerData[i].track_cnt[j] > 1)
+                    {
+                        int p_id = ids[j];
+                        hash_ids[i].insert(p_id);
+                        geometry_msgs::msg::Point32 p;
+                        p.x = un_pts[j].x;
+                        p.y = un_pts[j].y;
+                        p.z = 1;
+
+                        if(i == 0)
+                            feature_points_0->points.push_back(p);
+                        else
+                            feature_points_1->points.push_back(p);
+                        // used to identify the feature point belongs to which camera
+                        id_of_point.values.push_back(p_id * NUM_OF_CAM + i);
+                        u_of_point.values.push_back(cur_pts[j].x);
+                        v_of_point.values.push_back(cur_pts[j].y);
+                        velocity_x_of_point.values.push_back(pts_velocity[j].x);
+                        velocity_y_of_point.values.push_back(pts_velocity[j].y);
+                    }
+                }
+
+                if(i == 0)
+                {
+                    feature_points_0->channels.push_back(id_of_point);
+                    feature_points_0->channels.push_back(u_of_point);
+                    feature_points_0->channels.push_back(v_of_point);
+                    feature_points_0->channels.push_back(velocity_x_of_point);
+                    feature_points_0->channels.push_back(velocity_y_of_point);
+                }
+                else
+                {
+                    feature_points_1->channels.push_back(id_of_point);
+                    feature_points_1->channels.push_back(u_of_point);
+                    feature_points_1->channels.push_back(v_of_point);
+                    feature_points_1->channels.push_back(velocity_x_of_point);
+                    feature_points_1->channels.push_back(velocity_y_of_point);
+                }
+            }
+
+
+            // 7、get features' depths from lidar point cloud
+            pcl::PointCloud<PointType>::Ptr depth_cloud_temp(new pcl::PointCloud<PointType>());
+            mtx_lidar.lock();
+            *depth_cloud_temp = *depthCloud;
+            mtx_lidar.unlock();
+            // depth_cloud_temp in vins_world
+            // feature_points->points  in camera_link
+            sensor_msgs::msg::ChannelFloat32 depth_of_points_0 = depthRegister->get_depth(img0.header.stamp, show_img_0, depth_cloud_temp, trackerData[0].m_camera, feature_points_0->points, 0);
+            sensor_msgs::msg::ChannelFloat32 depth_of_points_1 = depthRegister->get_depth(img1.header.stamp, show_img_1, depth_cloud_temp, trackerData[1].m_camera, feature_points_1->points, 1);
+
+            feature_points_0->channels.push_back(depth_of_points_0);
+            feature_points_1->channels.push_back(depth_of_points_1);
+
+            // skip the first image; since no optical speed on frist image
+            if (!init_pub)
+            {
+                init_pub = 1;
+            }
+            else
+            {
+                pub_feature->publish(*feature_points_0);
+                pub_feature_1->publish(*feature_points_1);
+            }
+
+
+            // publish features in image
+            if (pub_match->get_subscription_count() != 0)
+            {
+                cv::Mat tmp_img_0;
+                cv::Mat tmp_img_1;
+                cv_ptr0 = cv_bridge::cvtColor(cv_ptr0, sensor_msgs::image_encodings::RGB8);
+                cv_ptr1 = cv_bridge::cvtColor(cv_ptr1, sensor_msgs::image_encodings::RGB8);
+                cv::Mat stereo_img_0 = cv_ptr0->image;
+                cv::Mat stereo_img_1 = cv_ptr1->image;
+
+                for (int i = 0; i < NUM_OF_CAM; i++)
+                {
+                    if(i == 0)
+                    {
+                        tmp_img_0 = stereo_img_0;
+                        cv::cvtColor(show_img_0, tmp_img_0, CV_GRAY2RGB);
+                    }
+                    else
+                    {
+                        tmp_img_1 = stereo_img_1;
+                        cv::cvtColor(show_img_1, tmp_img_1, CV_GRAY2RGB);
+                    }
+
+                    for (unsigned int j = 0; j < trackerData[i].cur_pts.size(); j++)
+                    {
+                        if (SHOW_TRACK)
+                        {
+                            // track count
+                            double len = std::min(1.0, 1.0 * trackerData[i].track_cnt[j] / WINDOW_SIZE);
+                            if(i == 0)
+                            {
+                                cv::circle(tmp_img_0, trackerData[i].cur_pts[j], 4, cv::Scalar(255 * (1 - len), 255 * len, 0), 4);
+                            }
+                            else
+                            {
+                                cv::circle(tmp_img_1, trackerData[i].cur_pts[j], 4, cv::Scalar(255 * (1 - len), 255 * len, 0), 4);
+                            }
+
+                        }
+
+                    }
+                }
+
+                pub_match->publish(*cv_ptr0->toImageMsg());
+                pub_match_1->publish(*cv_ptr1->toImageMsg());
+            }
+        }
+
+
+
+        static int visual_cnt = 0;
+        RCLCPP_INFO(this->get_logger(), "Camera callback works TODO remove this log %d", visual_cnt);
+        visual_cnt++;
 
     }
 
@@ -199,7 +426,7 @@ private:
 
     }
 
-
+    // cameras handler
     FeatureTracker trackerData[NUM_OF_CAM_ALL]; // TODO: cani
 
     double first_image_time;
@@ -212,8 +439,16 @@ private:
     std::shared_ptr<message_filters::Subscriber<sensor_msgs::msg::Image>> sub_img1;
     std::shared_ptr<message_filters::Synchronizer<ImgSyncPolicy>> sync;
 
-    rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr sub_lidar;
+    rclcpp::Publisher<sensor_msgs::msg::PointCloud>::SharedPtr pub_feature;
+    rclcpp::Publisher<sensor_msgs::msg::PointCloud>::SharedPtr pub_feature_1;
 
+    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr pub_match;
+    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr pub_match_1;
+
+    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr pub_restart;
+
+    // lidar handler
+    rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr sub_lidar;
 
     std::shared_ptr<tf2_ros::Buffer> tf_buffer;
     std::shared_ptr<tf2_ros::TransformListener> tf_listener;
@@ -229,7 +464,10 @@ int main(int argc, char **argv) {
     auto node = std::make_shared<FeatureTrackerNode>();
     node->initPubSub();
 
-    rclcpp::spin(node);
+    rclcpp::executors::MultiThreadedExecutor exec;
+    exec.add_node(node);
+    exec.spin();
+
     rclcpp::shutdown();
     return 0;
 }

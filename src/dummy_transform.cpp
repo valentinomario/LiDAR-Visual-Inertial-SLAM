@@ -22,8 +22,14 @@ public:
         transformStamped.transform.rotation.z = 0.0;
         transformStamped.transform.rotation.w = 1.0;
 
-        static_broadcaster_->sendTransform(transformStamped);
-        RCLCPP_INFO(this->get_logger(), "Published static identity transform.");
+        for(int i = 0; i<100000; i++)
+        {
+            static_broadcaster_->sendTransform(transformStamped);
+            RCLCPP_INFO(this->get_logger(), "Published static identity transform.");
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            if(!rclcpp::ok()) break;
+        }
+
     }
 
 private:
