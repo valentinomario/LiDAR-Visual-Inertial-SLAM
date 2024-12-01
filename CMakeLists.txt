@@ -55,6 +55,9 @@ add_executable(test_node src/test_node.cpp)
 ament_target_dependencies(test_node rclcpp std_msgs)
 install(TARGETS test_node DESTINATION lib/${PROJECT_NAME})
 
+add_executable(dummy_transform src/dummy_transform.cpp)
+ament_target_dependencies(dummy_transform rclcpp tf2 tf2_ros geometry_msgs)
+install(TARGETS dummy_transform DESTINATION lib/${PROJECT_NAME})
 
 # Visual Feature Tracker
 add_executable(${PROJECT_NAME}_visual_feature
