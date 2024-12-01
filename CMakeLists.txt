@@ -92,8 +92,23 @@ ament_target_dependencies(${PROJECT_NAME}_visual_feature
 
 
 # Visual Odometry
-# add_executable(${PROJECT_NAME}_visual_odometry src/visual_odometry/visual_estimator/*.cpp src/visual_odometry/visual_estimator/factor/*.cpp src/visual_odometry/visual_estimator/initial/*.cpp src/visual_odometry/visual_estimator/utility/*.cpp)
-# ament_target_dependencies(${PROJECT_NAME}_visual_odometry rclcpp sensor_msgs std_msgs PCL OpenCV Ceres)
+add_executable(${PROJECT_NAME}_visual_odometry
+        src/visual_odometry/visual_estimator/estimator_node.cpp
+        src/visual_odometry/visual_estimator/parameters.cpp
+)
+ament_target_dependencies(${PROJECT_NAME}_visual_odometry
+        rclcpp
+        sensor_msgs
+        std_msgs
+        PCL
+        pcl_conversions
+        tf2
+        tf2_ros
+        tf2_eigen
+        nav_msgs
+        OpenCV
+        Ceres
+)
 
 # Visual Loop
 # add_executable(${PROJECT_NAME}_visual_loop src/visual_odometry/visual_loop/*.cpp src/visual_odometry/visual_loop/utility/*.cpp src/visual_odometry/visual_loop/ThirdParty/*.cpp src/visual_odometry/visual_loop/ThirdParty/DBoW/*.cpp src/visual_odometry/visual_loop/ThirdParty/DUtils/*.cpp src/visual_odometry/visual_loop/ThirdParty/DVision/*.cpp src/visual_odometry/visual_feature/camera_models/*.cc)

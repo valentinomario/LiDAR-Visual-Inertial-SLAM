@@ -464,7 +464,7 @@ int main(int argc, char **argv) {
     auto node = std::make_shared<FeatureTrackerNode>();
     node->initPubSub();
 
-    rclcpp::executors::MultiThreadedExecutor exec;
+    rclcpp::executors::MultiThreadedExecutor exec(rclcpp::ExecutorOptions(), 2);
     exec.add_node(node);
     exec.spin();
 
