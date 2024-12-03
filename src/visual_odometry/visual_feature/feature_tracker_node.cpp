@@ -94,7 +94,7 @@ public:
 
 
         nodeInitialized = true;
-        RCLCPP_INFO(shared_from_this()->get_logger(), "-----------Node initialized-------- ");
+        RCLCPP_INFO(shared_from_this()->get_logger(), "-----feature tracker's publishers registred-----");
     }
 
 private:
@@ -105,7 +105,7 @@ private:
         // https://stackoverflow.com/questions/76568459/ros2-synchronizer-register-callback-inside-a-class-problem
 
         double cur_img_time = rclcpp::Time(img0.header.stamp).seconds();
-        // 1、Whether is the first frame
+        // 1 Whether is the first frame
         if(first_image_flag)
         {
             first_image_flag = false;
@@ -325,7 +325,7 @@ private:
 
 
         static int visual_cnt = 0;
-        RCLCPP_INFO(this->get_logger(), "Camera callback works TODO remove this log %d", visual_cnt);
+        // RCLCPP_INFO(this->get_logger(), "Camera callback works TODO remove this log %d", visual_cnt);
         visual_cnt++;
 
     }
@@ -353,7 +353,7 @@ private:
         Eigen::Affine3f transNow = tf2::transformToEigen(transformStamped).cast<float>();
 
 
-        // 1. convert laser cloud message to pcl，此时laser_cloud_in是pcl格式的/hesai/pandar点云(360°的)
+        // 1. convert laser cloud message to pcl
         pcl::PointCloud<PointType>::Ptr laser_cloud_in(new pcl::PointCloud<PointType>());
         pcl::fromROSMsg(laser_msg, *laser_cloud_in);
 
@@ -421,7 +421,7 @@ private:
         *depthCloud = *depthCloudDS;
 
         static int lidar_cnt = 0;
-        RCLCPP_INFO(this->get_logger(), "Lidar callback works TODO remove this log %d", lidar_cnt);
+        // RCLCPP_INFO(this->get_logger(), "Lidar callback works TODO remove this log %d", lidar_cnt);
         lidar_cnt++;
 
     }

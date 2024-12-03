@@ -1,0 +1,40 @@
+Finite:
+
+visual_odometry
+        visual_feature OK
+        visual_estimator
+                factor
+                        integration_base.h
+                        imu_factor.h
+                        pose_local_parametrization.h
+                        pose_local_parametrization.cpp
+                        projection_factor.h
+                        projection_factor.cpp
+                        projection_td_factor.h
+                        projection_td_factor.cpp
+                        marginalization_factor.h
+                        marginalization_factor.cpp
+                utility
+                        utility.h
+                        utility.cpp
+                        tic_toc.h
+                        CameraPoseVisualization.h
+                        CameraPoseVisualization.cpp
+                        visualization.h
+                        visualization.cpp
+                initial
+                        solve_5pts.cpp
+                        solve_5pts.h
+                        initial_sfm.h
+                        initial_sfm.cpp
+                        initial_alignment.h
+                        initial_alignment.cpp
+
+                feature_manager.h
+                feature_manager.cpp
+                parameters.h
+                parameters.cpp
+                estimator.h (manca initial_ex_alignment)
+                estimator.cpp (manca initial_ex_alignment)
+                estimator_node.cpp (???)
+

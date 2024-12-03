@@ -22,7 +22,7 @@ public:
         transformStamped.transform.rotation.z = 0.0;
         transformStamped.transform.rotation.w = 1.0;
 
-        for(int i = 0; i<100000; i++)
+        for(int i = 0; i<10000; i++)
         {
             static_broadcaster_->sendTransform(transformStamped);
             RCLCPP_INFO(this->get_logger(), "Published static identity transform.");

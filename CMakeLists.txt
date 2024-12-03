@@ -16,9 +16,11 @@ find_package(rclpy REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_eigen REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(pcl_conversions REQUIRED)
@@ -95,6 +97,19 @@ ament_target_dependencies(${PROJECT_NAME}_visual_feature
 add_executable(${PROJECT_NAME}_visual_odometry
         src/visual_odometry/visual_estimator/estimator_node.cpp
         src/visual_odometry/visual_estimator/parameters.cpp
+        src/visual_odometry/visual_estimator/utility/utility.cpp
+        src/visual_odometry/visual_estimator/factor/pose_local_parametrization.cpp
+        src/visual_odometry/visual_estimator/factor/projection_factor.cpp
+        src/visual_odometry/visual_estimator/factor/projection_td_factor.cpp
+        src/visual_odometry/visual_estimator/factor/marginalization_factor.cpp
+        src/visual_odometry/visual_estimator/initial/solve_5pts.cpp
+        src/visual_odometry/visual_estimator/initial/initial_sfm.cpp
+        src/visual_odometry/visual_estimator/feature_manager.cpp
+        src/visual_odometry/visual_estimator/initial/initial_alignment.cpp
+        src/visual_odometry/visual_estimator/utility/CameraPoseVisualization.cpp
+        src/visual_odometry/visual_estimator/utility/visualization.cpp
+
+        src/visual_odometry/visual_estimator/estimator.cpp
 )
 ament_target_dependencies(${PROJECT_NAME}_visual_odometry
         rclcpp
@@ -105,7 +120,9 @@ ament_target_dependencies(${PROJECT_NAME}_visual_odometry
         tf2
         tf2_ros
         tf2_eigen
+        tf2_geometry_msgs
         nav_msgs
+        visualization_msgs
         OpenCV
         Ceres
 )
@@ -159,6 +176,8 @@ install(DIRECTORY
 
 install(TARGETS
         ${PROJECT_NAME}_visual_feature
+        ${PROJECT_NAME}_visual_odometry
+
         DESTINATION lib/${PROJECT_NAME}
 )
 message(STATUS "===== Selected CMake Variables =====")

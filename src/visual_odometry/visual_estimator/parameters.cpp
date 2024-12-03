@@ -121,8 +121,8 @@ void readParameters(const std::string& config_path)
     ROW = fsSettings["image_height"];
     COL = fsSettings["image_width"];
 
-    // ESTIMATE_EXTRINSIC = fsSettings["estimate_extrinsic"];
-    // Removed estimate extrinsic
+    ESTIMATE_EXTRINSIC = fsSettings["estimate_extrinsic"];
+    // TODO: ESTIMATE_EXTRINSIC is always 0 in our case
     cv::Mat cv_R, cv_T;
     fsSettings["extrinsicRotation"] >> cv_R;
     fsSettings["extrinsicTranslation"] >> cv_T;

@@ -1,4 +1,4 @@
-visual_feature:
+/**:
   ros__parameters:
     # Topics
     pointCloudTopic: "/hesai/pandar"               # Point cloud data

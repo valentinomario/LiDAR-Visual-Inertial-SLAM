@@ -65,13 +65,24 @@ def generate_launch_description():
     ])
     '''
 
-    return LaunchDescription([Node(
-        package="emv_lio2",
-        executable="emv_lio2_visual_feature",
-        name="visual_feature",
-        output="screen",
-        parameters=[
-            {"config_dir":config_dir},
-            lidar_params_file
-        ]
-    )])
+    return LaunchDescription([
+        Node(
+            package="emv_lio2",
+            executable="emv_lio2_visual_feature",
+            name="visual_feature",
+            output="screen",
+            parameters=[
+                {"config_dir":config_dir},
+                lidar_params_file
+        ]),
+        Node(
+            package="emv_lio2",
+            executable="emv_lio2_visual_odometry",
+            name="visual_odometry",
+            output="screen",
+            parameters=[
+                {"config_dir":config_dir},
+                lidar_params_file
+            ])
+
+    ])
