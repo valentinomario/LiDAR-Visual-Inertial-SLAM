@@ -26,7 +26,7 @@ public:
         this->declare_parameter<std::string>("PROJECT_NAME", "emv_lio2");
         this->get_parameter("PROJECT_NAME", PROJECT_NAME);
 
-        auto extRotV_lidar2imu = this->declare_parameter<std::vector<double>>("extrinsicRot", {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0});
+        auto extRotV_lidar2imu = this->declare_parameter<std::vector<double>>("extrinsicRot", {1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0});
         auto extTransV_lidar2imu = this->declare_parameter<std::vector<double>>("extrinsicTrans", {0.0,0.0,0.0});
         extRot_lidar2imu = Eigen::Map<const Eigen::Matrix<double, -1, -1, Eigen::RowMajor>>(extRotV_lidar2imu.data(), 3, 3);
         extTrans_lidar2imu = Eigen::Map<const Eigen::Matrix<double, -1, -1, Eigen::RowMajor>>(extTransV_lidar2imu.data(), 3, 1);

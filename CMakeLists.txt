@@ -132,8 +132,24 @@ ament_target_dependencies(${PROJECT_NAME}_visual_odometry
 # ament_target_dependencies(${PROJECT_NAME}_visual_loop rclcpp sensor_msgs std_msgs PCL OpenCV Ceres)
 
 # IMU Preintegration
-# add_executable(${PROJECT_NAME}_imuPreintegration src/lidar_odometry/imuPreintegration.cpp src/lidar_odometry/imu_tracker.cc)
-# ament_target_dependencies(${PROJECT_NAME}_imuPreintegration rclcpp sensor_msgs std_msgs PCL GTSAM)
+add_executable(${PROJECT_NAME}_imuPreintegration
+        src/lidar_odometry/imuPreintegration.cpp
+        src/lidar_odometry/imu_tracker.cc
+
+)
+ament_target_dependencies(${PROJECT_NAME}_imuPreintegration
+        rclcpp
+        sensor_msgs
+        nav_msgs
+        visualization_msgs
+        std_msgs
+        PCL
+        pcl_conversions
+        tf2
+        tf2_ros
+        tf2_geometry_msgs
+        OpenCV
+        GTSAM)
 
 # Range Image Projection
 # add_executable(${PROJECT_NAME}_imageProjection src/lidar_odometry/imageProjection.cpp src/lidar_odometry/imu_tracker.cc)
@@ -177,6 +193,7 @@ install(DIRECTORY
 install(TARGETS
         ${PROJECT_NAME}_visual_feature
         ${PROJECT_NAME}_visual_odometry
+        ${PROJECT_NAME}_imuPreintegration
 
         DESTINATION lib/${PROJECT_NAME}
 )

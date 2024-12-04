@@ -38,3 +38,9 @@ visual_odometry
                 estimator.cpp (manca initial_ex_alignment)
                 estimator_node.cpp (???)
 
+lidar_odometry:
+        utility.h
+        imu_tracker.h
+        imu_tracker.cc
+        imuPreintegration
+

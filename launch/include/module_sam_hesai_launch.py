@@ -83,6 +83,20 @@ def generate_launch_description():
             parameters=[
                 {"config_dir":config_dir},
                 lidar_params_file
-            ])
+        ]),
+        Node(
+            package="emv_lio2",
+            executable="emv_lio2_imuPreintegration",
+            name="imuPreintegration",
+            output="screen",
+            parameters=[{
+                "config_dir":config_dir,
+                "lio_config_file": PathJoinSubstitution([config_dir, "params_lidar.yaml"]),
+                "vins_config_file": PathJoinSubstitution([config_dir, "params_camera.yaml"]),
+                "vins_config_file_1": PathJoinSubstitution([config_dir, "params_camera1.yaml"]),
+                "vins_config_file_2": PathJoinSubstitution([config_dir, "params_camera2.yaml"]),
+            },
+            lidar_params_file
+        ]),
 
     ])

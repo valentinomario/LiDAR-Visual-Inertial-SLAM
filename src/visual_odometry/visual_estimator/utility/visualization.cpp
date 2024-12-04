@@ -64,7 +64,13 @@ void registerPub(std::shared_ptr<rclcpp::Node> node_in)
 tf2::Transform transformConversion(const geometry_msgs::msg::TransformStamped& t)
 {
     tf2::Transform transform;
-    tf2::fromMsg(t.transform, transform);
+    tf2::fromMsg(t.transform, transform);   // TODO fromMsg() check if implemented!
+    RCLCPP_INFO(node->get_logger(), "Check if values match: translation %f, %f, %f", t.transform.translation.x, t.transform.translation.y, t.transform.translation.z);
+    RCLCPP_INFO(node->get_logger(), ".. and ........................... %f, %f, %f", transform.getOrigin().getX(), transform.getOrigin().getY(), transform.getOrigin().getZ());
+
+    RCLCPP_INFO(node->get_logger(), "Check if values match: rotation %f, %f, %f, %f", t.transform.rotation.x, t.transform.rotation.y, t.transform.rotation.z, t.transform.rotation.w);
+    RCLCPP_INFO(node->get_logger(), ".. and ........................ %f, %f, %f, %f", transform.getRotation().getX(), transform.getRotation().getY(), transform.getRotation().getZ(), transform.getRotation().getW());
+
     return transform;
 }
 

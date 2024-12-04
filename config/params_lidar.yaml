@@ -39,7 +39,7 @@
     # Extrinsics (lidar -> IMU)
     extrinsicTrans: [-0.0204, 0.0175, 0.0642]
     extrinsicRot: [-0.9741, 0.2262, 0.0008, -0.2261, -0.9740, 0.0147, 0.0041, 0.0141, 0.9999]
-    extrinsicRPY: [0, -1, 0, -1, 0, 0, 0, 0, -1]
+    extrinsicRPY: [0.0, -1.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, -1.0]
 
     # LOAM feature threshold
     edgeThreshold: 1.0
@@ -53,8 +53,8 @@
     mappingSurfLeafSize: 0.4
 
     # Robot motion constraint
-    z_tollerance: 1000        # meters
-    rotation_tollerance: 1000 # radians
+    z_tolerance: 1000.0       # meters
+    rotation_tolerance: 1000.0 # radians
 
     # CPU Params
     numberOfCores: 4
@@ -78,3 +78,6 @@
     globalMapVisualizationSearchRadius: 1000.0
     globalMapVisualizationPoseDensity: 10.0
     globalMapVisualizationLeafSize: 1.0
+
+    # check
+    paramsCheck: 69
