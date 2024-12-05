@@ -100,4 +100,12 @@ def generate_launch_description():
             parameters=[
                 lidar_params_file
         ]),
+        Node(
+            package="emv_lio2",
+            executable="emv_lio2_featureExtraction",
+            name="featureExtraction",
+            output="screen",
+            parameters=[
+                lidar_params_file
+            ]),
     ])

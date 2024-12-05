@@ -42,5 +42,7 @@ lidar_odometry:
         utility.h
         imu_tracker.h
         imu_tracker.cc
-        imuPreintegration
+        imuPreintegration.cpp
+        imageProjection.cpp
+
 

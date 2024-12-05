@@ -150,7 +150,7 @@ private:
         publishClouds();
 
         resetParameters();
-        RCLCPP_INFO(this->get_logger(), "image projected");
+        // RCLCPP_INFO(this->get_logger(), "image projected");
     }
 
     void allocateMemory()

@@ -181,8 +181,20 @@ ament_target_dependencies(${PROJECT_NAME}_imageProjection
 
 
 # Feature Association
-# add_executable(${PROJECT_NAME}_featureExtraction src/lidar_odometry/featureExtraction.cpp)
-# ament_target_dependencies(${PROJECT_NAME}_featureExtraction rclcpp sensor_msgs std_msgs PCL)
+add_executable(${PROJECT_NAME}_featureExtraction src/lidar_odometry/featureExtraction.cpp)
+ament_target_dependencies(${PROJECT_NAME}_featureExtraction
+        rclcpp
+        sensor_msgs
+        std_msgs
+        cloud_msg
+        nav_msgs
+        visualization_msgs
+        PCL
+        pcl_conversions
+        tf2
+        tf2_ros
+        tf2_geometry_msgs
+)
 
 # Mapping Optimization
 # add_executable(${PROJECT_NAME}_mapOptimization src/lidar_odometry/mapOptmization.cpp include/ikd-Tree/ikd_Tree.cpp)
@@ -220,6 +232,7 @@ install(TARGETS
         ${PROJECT_NAME}_visual_odometry
         ${PROJECT_NAME}_imuPreintegration
         ${PROJECT_NAME}_imageProjection
+        ${PROJECT_NAME}_featureExtraction
 
         DESTINATION lib/${PROJECT_NAME}
 )
