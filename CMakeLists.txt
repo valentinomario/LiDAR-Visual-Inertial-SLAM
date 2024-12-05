@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 cmake_policy(SET CMP0074 NEW)
 project(emv_lio2)
+message(STATUS "cloud_messages: " ${cloud_msg_INCLUDE_DIRS})
 
 # CMake flags
 set(CMAKE_BUILD_TYPE Release)
@@ -28,8 +29,10 @@ find_package(PCL REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(Ceres REQUIRED)
 find_package(GTSAM REQUIRED QUIET)
-find_package(Boost REQUIRED COMPONENTS filesystem program_options system)
+# find_package(Boost REQUIRED COMPONENTS filesystem program_options system)
 find_package(OpenMP REQUIRED)
+find_package(cloud_msg REQUIRED)
+
 
 # Include directories
 include_directories(
@@ -39,6 +42,8 @@ include_directories(
         ${CERES_INCLUDE_DIRS}
         ${Boost_INCLUDE_DIRS}
         ${GTSAM_INCLUDE_DIR}
+        ${cloud_msg_INCLUDE_DIRS}
+
 )
 
 link_libraries(${OpenCV_LIBS}
@@ -149,11 +154,31 @@ ament_target_dependencies(${PROJECT_NAME}_imuPreintegration
         tf2_ros
         tf2_geometry_msgs
         OpenCV
-        GTSAM)
+        GTSAM
+)
 
 # Range Image Projection
-# add_executable(${PROJECT_NAME}_imageProjection src/lidar_odometry/imageProjection.cpp src/lidar_odometry/imu_tracker.cc)
-# ament_target_dependencies(${PROJECT_NAME}_imageProjection rclcpp sensor_msgs std_msgs PCL)
+add_executable(${PROJECT_NAME}_imageProjection
+        src/lidar_odometry/imageProjection.cpp
+        src/lidar_odometry/imu_tracker.cc
+)
+
+ament_target_dependencies(${PROJECT_NAME}_imageProjection
+        rclcpp
+        sensor_msgs
+        nav_msgs
+        visualization_msgs
+        std_msgs
+        PCL
+        pcl_conversions
+        tf2
+        tf2_ros
+        tf2_geometry_msgs
+        cloud_msg
+        OpenCV
+        GTSAM
+)
+
 
 # Feature Association
 # add_executable(${PROJECT_NAME}_featureExtraction src/lidar_odometry/featureExtraction.cpp)
@@ -194,6 +219,7 @@ install(TARGETS
         ${PROJECT_NAME}_visual_feature
         ${PROJECT_NAME}_visual_odometry
         ${PROJECT_NAME}_imuPreintegration
+        ${PROJECT_NAME}_imageProjection
 
         DESTINATION lib/${PROJECT_NAME}
 )
@@ -266,7 +292,6 @@ endif()
 #   message(WARNING "GTSAM_LIBRARY_DIR is not set")
 # endif()
 
-# Librerie di pacchetti
 if(PCL_LIBRARIES)
   message(STATUS "PCL_LIBRARIES = ${PCL_LIBRARIES}")
 else()
@@ -305,6 +330,7 @@ endif()
 
 message(STATUS "===== End of Selected CMake Variables =====")
 
+ament_export_dependencies(rosidl_default_runtime)
 # Finalize
 ament_package()
 

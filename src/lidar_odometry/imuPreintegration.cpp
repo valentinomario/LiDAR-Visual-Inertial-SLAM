@@ -27,10 +27,14 @@ class IMUPreintegration : public rclcpp::Node, public ParamServer
 public:
     IMUPreintegration() : Node("imuPreintegration")
     {
-        RCLCPP_INFO(this->get_logger(), "\033[1;32mimuPreintegration Started.\033[0m");
+        RCLCPP_INFO(this->get_logger(), "\033[1;32m Imu Preintegration Started.\033[0m");
 
-        declareParameters();
-        getParameters();
+    }
+
+    void initNode()
+    {
+        declareParameters(shared_from_this());
+        getParameters(shared_from_this());
 
         extRot = Eigen::Map<const Eigen::Matrix<double, -1, -1, Eigen::RowMajor>>(extRotV.data(), 3, 3);
         extRPY = Eigen::Map<const Eigen::Matrix<double, -1, -1, Eigen::RowMajor>>(extRPYV.data(), 3, 3);
@@ -83,164 +87,14 @@ public:
                                               gtsam::Point3(t_imu2lidar.x(), t_imu2lidar.y(), t_imu2lidar.z()));
 
         RCLCPP_INFO(this->get_logger(), "-----imuPreintegration's publishers registred-----");
-
     }
+
 private:
-    void declareParameters()
-    {
-        this->declare_parameter<std::string>("PROJECT_NAME", "sam");
-        this->declare_parameter<std::string>("robot_id", "roboat");
-        this->declare_parameter<std::string>("pointCloudTopic", "points_raw");
-        this->declare_parameter<std::string>("imuTopic", "imu_data");
-        this->declare_parameter<std::string>("odomTopic", "odometry/imu");
-        this->declare_parameter<std::string>("gpsTopic", "odometry/gps");
-
-        this->declare_parameter<bool>("useImuHeadingInitialization", false);
-        this->declare_parameter<bool>("useGpsElevation", false);
-        this->declare_parameter<float>("gpsCovThreshold", 2.0);
-        this->declare_parameter<float>("poseCovThreshold", 25.0);
-
-        this->declare_parameter<bool>("savePCD", false);
-        this->declare_parameter<std::string>("savePCDDirectory", "/tmp/loam/");
-
-        this->declare_parameter<int>("N_SCAN", 16);
-        this->declare_parameter<int>("Horizon_SCAN", 1800);
-        this->declare_parameter<float>("ang_res_y", 1.0);
-        this->declare_parameter<int>("lidar_type", 1);
-        this->declare_parameter<std::string>("timeField", "time");
-        this->declare_parameter<int>("downsampleRate", 1);
-        this->declare_parameter<float>("lidarMaxRange", 50.0);
-        this->declare_parameter<float>("lidarMinRange", 0.5);
-        this->declare_parameter<int>("feature_enable", 1);
-        this->declare_parameter<int>("remove_noise", 0);
-
-        this->declare_parameter<int>("min_cluster_size", 10);
-        this->declare_parameter<int>("segment_valid_point_num", 5);
-        this->declare_parameter<int>("segment_valid_line_num", 3);
-
-        this->declare_parameter<float>("imuAccNoise", 0.01);
-        this->declare_parameter<float>("imuGyrNoise", 0.001);
-        this->declare_parameter<float>("imuAccBiasN", 0.0002);
-        this->declare_parameter<float>("imuGyrBiasN", 0.00003);
-        this->declare_parameter<float>("imuGravity", 9.80511);
-        this->declare_parameter<std::vector<double>>("extrinsicRot", {1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0});
-        this->declare_parameter<std::vector<double>>("extrinsicRPY", {0.0, -1.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, -1.0});
-        this->declare_parameter<std::vector<double>>("extrinsicTrans", {0.0,0.0,0.0});
-
-        this->declare_parameter<float>("edgeThreshold", 0.1);
-        this->declare_parameter<float>("surfThreshold", 0.1);
-        this->declare_parameter<int>("edgeFeatureMinValidNum", 10);
-        this->declare_parameter<int>("surfFeatureMinValidNum", 100);
-
-        this->declare_parameter<float>("odometrySurfLeafSize", 0.2);
-        this->declare_parameter<float>("mappingCornerLeafSize", 0.2);
-        this->declare_parameter<float>("mappingSurfLeafSize", 0.2);
-
-        this->declare_parameter<float>("z_tolerance", FLT_MAX);
-        this->declare_parameter<float>("rotation_tolerance", FLT_MAX);
-
-        this->declare_parameter<int>("numberOfCores", 2);
-        this->declare_parameter<double>("mappingProcessInterval", 0.15);
-
-        this->declare_parameter<float>("surroundingkeyframeAddingDistThreshold", 1.0);
-        this->declare_parameter<float>("surroundingkeyframeAddingAngleThreshold", 0.2);
-        this->declare_parameter<float>("surroundingKeyframeDensity", 1.0);
-        this->declare_parameter<float>("surroundingKeyframeSearchRadius", 50.0);
-
-        this->declare_parameter<bool>("loopClosureEnableFlag", false);
-        this->declare_parameter<int>("surroundingKeyframeSize", 50);
-        this->declare_parameter<float>("historyKeyframeSearchRadius", 10.0);
-        this->declare_parameter<float>("historyKeyframeSearchTimeDiff", 30.0);
-        this->declare_parameter<int>("historyKeyframeSearchNum", 25);
-        this->declare_parameter<float>("historyKeyframeFitnessScore", 0.3);
-
-        this->declare_parameter<float>("globalMapVisualizationSearchRadius", 1e3);
-        this->declare_parameter<float>("globalMapVisualizationPoseDensity", 10.0);
-        this->declare_parameter<float>("globalMapVisualizationLeafSize", 1.0);
-
-        this->declare_parameter<int>("paramsCheck", 0);
-    }
-
-    void getParameters() {
-        this->get_parameter("PROJECT_NAME", PROJECT_NAME);
-        this->get_parameter("robot_id", robot_id);
-        this->get_parameter("pointCloudTopic", pointCloudTopic);
-        this->get_parameter("imuTopic", imuTopic);
-        this->get_parameter("odomTopic", odomTopic);
-        this->get_parameter("gpsTopic", gpsTopic);
-
-        this->get_parameter("useImuHeadingInitialization", useImuHeadingInitialization);
-        this->get_parameter("useGpsElevation", useGpsElevation);
-        this->get_parameter("gpsCovThreshold", gpsCovThreshold);
-        this->get_parameter("poseCovThreshold", poseCovThreshold);
-
-        this->get_parameter("savePCD", savePCD);
-        this->get_parameter("savePCDDirectory", savePCDDirectory);
-
-        this->get_parameter("N_SCAN", N_SCAN);
-        this->get_parameter("Horizon_SCAN", Horizon_SCAN);
-        this->get_parameter("ang_res_y", ang_res_y);
-        this->get_parameter("lidar_type", lidar_type);
-        this->get_parameter("timeField", timeField);
-        this->get_parameter("downsampleRate", downsampleRate);
-        this->get_parameter("lidarMaxRange", lidarMaxRange);
-        this->get_parameter("lidarMinRange", lidarMinRange);
-        this->get_parameter("feature_enable", feature_enable);
-        this->get_parameter("remove_noise", remove_noise);
-
-        this->get_parameter("min_cluster_size", min_cluster_size);
-        this->get_parameter("segment_valid_point_num", segment_valid_point_num);
-        this->get_parameter("segment_valid_line_num", segment_valid_line_num);
-
-        this->get_parameter("imuAccNoise", imuAccNoise);
-        this->get_parameter("imuGyrNoise", imuGyrNoise);
-        this->get_parameter("imuAccBiasN", imuAccBiasN);
-        this->get_parameter("imuGyrBiasN", imuGyrBiasN);
-        this->get_parameter("imuGravity", imuGravity);
-        this->get_parameter("extrinsicRot", extRotV);
-        this->get_parameter("extrinsicRPY", extRPYV);
-        this->get_parameter("extrinsicTrans", extTransV);
-
-        this->get_parameter("edgeThreshold", edgeThreshold);
-        this->get_parameter("surfThreshold", surfThreshold);
-        this->get_parameter("edgeFeatureMinValidNum", edgeFeatureMinValidNum);
-        this->get_parameter("surfFeatureMinValidNum", surfFeatureMinValidNum);
-
-        this->get_parameter("odometrySurfLeafSize", odometrySurfLeafSize);
-        this->get_parameter("mappingCornerLeafSize", mappingCornerLeafSize);
-        this->get_parameter("mappingSurfLeafSize", mappingSurfLeafSize);
-
-        this->get_parameter("z_tolerance", z_tolerance);
-        this->get_parameter("rotation_tolerance", rotation_tolerance);
-
-        this->get_parameter("numberOfCores", numberOfCores);
-        this->get_parameter("mappingProcessInterval", mappingProcessInterval);
-
-        this->get_parameter("surroundingkeyframeAddingDistThreshold", surroundingkeyframeAddingDistThreshold);
-        this->get_parameter("surroundingkeyframeAddingAngleThreshold", surroundingkeyframeAddingAngleThreshold);
-        this->get_parameter("surroundingKeyframeDensity", surroundingKeyframeDensity);
-        this->get_parameter("surroundingKeyframeSearchRadius", surroundingKeyframeSearchRadius);
-
-        this->get_parameter("loopClosureEnableFlag", loopClosureEnableFlag);
-        this->get_parameter("surroundingKeyframeSize", surroundingKeyframeSize);
-        this->get_parameter("historyKeyframeSearchRadius", historyKeyframeSearchRadius);
-        this->get_parameter("historyKeyframeSearchTimeDiff", historyKeyframeSearchTimeDiff);
-        this->get_parameter("historyKeyframeSearchNum", historyKeyframeSearchNum);
-        this->get_parameter("historyKeyframeFitnessScore", historyKeyframeFitnessScore);
-
-        this->get_parameter("globalMapVisualizationSearchRadius", globalMapVisualizationSearchRadius);
-        this->get_parameter("globalMapVisualizationPoseDensity", globalMapVisualizationPoseDensity);
-        this->get_parameter("globalMapVisualizationLeafSize", globalMapVisualizationLeafSize);
-
-        int paramsCheck;
-        this->get_parameter("paramsCheck", paramsCheck);
-
-        // if(paramsCheck != 69) throw "Error loading parameters";
-
-    }
 
     void imuHandler(const std::shared_ptr<sensor_msgs::msg::Imu> imuMsg)
     {
+        // RCLCPP_INFO(this->get_logger(), "imu callback works");
+
          if (!initialised_)
         {
             initialised_ = true;
@@ -264,7 +118,7 @@ private:
         imuQueOpt.push_back(thisImu);
         imuQueImu.push_back(thisImu);
 
-        if (1!=1 && doneFirstOpt == false)
+        if (doneFirstOpt == false)
             return;
 
         double imuTime = ROS_TIME(&thisImu);
@@ -358,7 +212,6 @@ private:
         */
         tfOdom2BaseLink->sendTransform(odom_2_baselink);
 
-        RCLCPP_INFO(this->get_logger(), "imu callback works");
     }
 
     void odometryHandler(const std::shared_ptr<nav_msgs::msg::Odometry> odomMsg)
@@ -552,7 +405,7 @@ private:
         ++key;
         doneFirstOpt = true;
 
-        RCLCPP_INFO(this->get_logger(), "odometry handler works");
+        // RCLCPP_INFO(this->get_logger(), "odometry handler works");
 
     }
 
@@ -663,8 +516,9 @@ private:
 int main(int argc, char **argv) {
     rclcpp::init(argc, argv);
     auto node = std::make_shared<IMUPreintegration>();
-
+    node->initNode();
     rclcpp::spin(node);
+
     rclcpp::shutdown();
     return 0;
 }

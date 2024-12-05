@@ -196,10 +196,164 @@ public:
     }
     return imu_out;
     }
+
+    void declareParameters(std::shared_ptr<rclcpp::Node> node)
+    {
+        // TODO set defaults
+        node->declare_parameter<std::string>("PROJECT_NAME", "emv_lio2");
+        node->declare_parameter<std::string>("robot_id", "roboat");
+        node->declare_parameter<std::string>("pointCloudTopic", "/hesai/pandar");
+        node->declare_parameter<std::string>("imuTopic", "imu_data");
+        node->declare_parameter<std::string>("odomTopic", "odometry/imu");
+        node->declare_parameter<std::string>("gpsTopic", "odometry/gps");
+
+        node->declare_parameter<bool>("useImuHeadingInitialization", false);
+        node->declare_parameter<bool>("useGpsElevation", false);
+        node->declare_parameter<float>("gpsCovThreshold", 2.0);
+        node->declare_parameter<float>("poseCovThreshold", 25.0);
+
+        node->declare_parameter<bool>("savePCD", false);
+        node->declare_parameter<std::string>("savePCDDirectory", "/tmp/loam/");
+
+        node->declare_parameter<int>("N_SCAN", 32);
+        node->declare_parameter<int>("Horizon_SCAN", 2000);
+        node->declare_parameter<float>("ang_res_y", 1.0);
+        node->declare_parameter<int>("lidar_type", 2);
+        node->declare_parameter<std::string>("timeField", "timestamp");
+        node->declare_parameter<int>("downsampleRate", 2);
+        node->declare_parameter<float>("lidarMaxRange", 50.0);
+        node->declare_parameter<float>("lidarMinRange", 0.5);
+        node->declare_parameter<int>("feature_enable", 0);
+        node->declare_parameter<int>("remove_noise", 0);
+
+        node->declare_parameter<int>("min_cluster_size", 10);
+        node->declare_parameter<int>("segment_valid_point_num", 5);
+        node->declare_parameter<int>("segment_valid_line_num", 3);
+
+        node->declare_parameter<float>("imuAccNoise", 0.01);
+        node->declare_parameter<float>("imuGyrNoise", 0.001);
+        node->declare_parameter<float>("imuAccBiasN", 0.0002);
+        node->declare_parameter<float>("imuGyrBiasN", 0.00003);
+        node->declare_parameter<float>("imuGravity", 9.80511);
+        node->declare_parameter<std::vector<double>>("extrinsicRot", {1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0});
+        node->declare_parameter<std::vector<double>>("extrinsicRPY", {0.0, -1.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, -1.0});
+        node->declare_parameter<std::vector<double>>("extrinsicTrans", {0.0,0.0,0.0});
+
+        node->declare_parameter<float>("edgeThreshold", 1.0);
+        node->declare_parameter<float>("surfThreshold", 0.1);
+        node->declare_parameter<int>("edgeFeatureMinValidNum", -1);
+        node->declare_parameter<int>("surfFeatureMinValidNum", 100);
+
+        node->declare_parameter<float>("odometrySurfLeafSize", 0.4);
+        node->declare_parameter<float>("mappingCornerLeafSize", 0.2);
+        node->declare_parameter<float>("mappingSurfLeafSize", 0.4);
+
+        node->declare_parameter<float>("z_tolerance", 1000);
+        node->declare_parameter<float>("rotation_tolerance", 1000);
+
+        node->declare_parameter<int>("numberOfCores", 4);
+        node->declare_parameter<double>("mappingProcessInterval", 0.05);
+
+        node->declare_parameter<float>("surroundingkeyframeAddingDistThreshold", 1.0);
+        node->declare_parameter<float>("surroundingkeyframeAddingAngleThreshold", 0.2);
+        node->declare_parameter<float>("surroundingKeyframeDensity", 2.0);
+        node->declare_parameter<float>("surroundingKeyframeSearchRadius", 50.0);
+
+        node->declare_parameter<bool>("loopClosureEnableFlag", false);
+        node->declare_parameter<int>("surroundingKeyframeSize", 25);
+        node->declare_parameter<float>("historyKeyframeSearchRadius", 20.0);
+        node->declare_parameter<float>("historyKeyframeSearchTimeDiff", 30.0);
+        node->declare_parameter<int>("historyKeyframeSearchNum", 25);
+        node->declare_parameter<float>("historyKeyframeFitnessScore", 0.3);
+
+        node->declare_parameter<float>("globalMapVisualizationSearchRadius", 1e3);
+        node->declare_parameter<float>("globalMapVisualizationPoseDensity", 10.0);
+        node->declare_parameter<float>("globalMapVisualizationLeafSize", 1.0);
+
+        node->declare_parameter<int>("paramsCheck", 0);
+    }
+
+    void getParameters(std::shared_ptr<rclcpp::Node> node) {
+        node->get_parameter("PROJECT_NAME", PROJECT_NAME);
+        node->get_parameter("robot_id", robot_id);
+        node->get_parameter("pointCloudTopic", pointCloudTopic);
+        node->get_parameter("imuTopic", imuTopic);
+        node->get_parameter("odomTopic", odomTopic);
+        node->get_parameter("gpsTopic", gpsTopic);
+
+        node->get_parameter("useImuHeadingInitialization", useImuHeadingInitialization);
+        node->get_parameter("useGpsElevation", useGpsElevation);
+        node->get_parameter("gpsCovThreshold", gpsCovThreshold);
+        node->get_parameter("poseCovThreshold", poseCovThreshold);
+
+        node->get_parameter("savePCD", savePCD);
+        node->get_parameter("savePCDDirectory", savePCDDirectory);
+
+        node->get_parameter("N_SCAN", N_SCAN);
+        node->get_parameter("Horizon_SCAN", Horizon_SCAN);
+        node->get_parameter("ang_res_y", ang_res_y);
+        node->get_parameter("lidar_type", lidar_type);
+        node->get_parameter("timeField", timeField);
+        node->get_parameter("downsampleRate", downsampleRate);
+        node->get_parameter("lidarMaxRange", lidarMaxRange);
+        node->get_parameter("lidarMinRange", lidarMinRange);
+        node->get_parameter("feature_enable", feature_enable);
+        node->get_parameter("remove_noise", remove_noise);
+
+        node->get_parameter("min_cluster_size", min_cluster_size);
+        node->get_parameter("segment_valid_point_num", segment_valid_point_num);
+        node->get_parameter("segment_valid_line_num", segment_valid_line_num);
+
+        node->get_parameter("imuAccNoise", imuAccNoise);
+        node->get_parameter("imuGyrNoise", imuGyrNoise);
+        node->get_parameter("imuAccBiasN", imuAccBiasN);
+        node->get_parameter("imuGyrBiasN", imuGyrBiasN);
+        node->get_parameter("imuGravity", imuGravity);
+        node->get_parameter("extrinsicRot", extRotV);
+        node->get_parameter("extrinsicRPY", extRPYV);
+        node->get_parameter("extrinsicTrans", extTransV);
+
+        node->get_parameter("edgeThreshold", edgeThreshold);
+        node->get_parameter("surfThreshold", surfThreshold);
+        node->get_parameter("edgeFeatureMinValidNum", edgeFeatureMinValidNum);
+        node->get_parameter("surfFeatureMinValidNum", surfFeatureMinValidNum);
+
+        node->get_parameter("odometrySurfLeafSize", odometrySurfLeafSize);
+        node->get_parameter("mappingCornerLeafSize", mappingCornerLeafSize);
+        node->get_parameter("mappingSurfLeafSize", mappingSurfLeafSize);
+
+        node->get_parameter("z_tolerance", z_tolerance);
+        node->get_parameter("rotation_tolerance", rotation_tolerance);
+
+        node->get_parameter("numberOfCores", numberOfCores);
+        node->get_parameter("mappingProcessInterval", mappingProcessInterval);
+
+        node->get_parameter("surroundingkeyframeAddingDistThreshold", surroundingkeyframeAddingDistThreshold);
+        node->get_parameter("surroundingkeyframeAddingAngleThreshold", surroundingkeyframeAddingAngleThreshold);
+        node->get_parameter("surroundingKeyframeDensity", surroundingKeyframeDensity);
+        node->get_parameter("surroundingKeyframeSearchRadius", surroundingKeyframeSearchRadius);
+
+        node->get_parameter("loopClosureEnableFlag", loopClosureEnableFlag);
+        node->get_parameter("surroundingKeyframeSize", surroundingKeyframeSize);
+        node->get_parameter("historyKeyframeSearchRadius", historyKeyframeSearchRadius);
+        node->get_parameter("historyKeyframeSearchTimeDiff", historyKeyframeSearchTimeDiff);
+        node->get_parameter("historyKeyframeSearchNum", historyKeyframeSearchNum);
+        node->get_parameter("historyKeyframeFitnessScore", historyKeyframeFitnessScore);
+
+        node->get_parameter("globalMapVisualizationSearchRadius", globalMapVisualizationSearchRadius);
+        node->get_parameter("globalMapVisualizationPoseDensity", globalMapVisualizationPoseDensity);
+        node->get_parameter("globalMapVisualizationLeafSize", globalMapVisualizationLeafSize);
+
+        int paramsCheck;
+        node->get_parameter("paramsCheck", paramsCheck);
+
+        if(paramsCheck != 69) throw "Error loading parameters";
+
+    }
 };
 
 template<typename T>
-sensor_msgs::msg::PointCloud2 publishCloud(std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::PointCloud2>> publisher,
+sensor_msgs::msg::PointCloud2 publishCloud(rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr publisher,
     T cloud,
     rclcpp::Time timeStamp,
     std::string frame)

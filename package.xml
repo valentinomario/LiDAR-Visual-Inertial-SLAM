@@ -8,6 +8,9 @@
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
 
   <!-- Core dependencies -->
   <depend>rclcpp</depend>
@@ -27,16 +30,13 @@
   <depend>geometry_msgs</depend>
   <depend>nav_msgs</depend>
 
-  <!-- Message generation -->
-  <depend>rosidl_default_generators</depend>
-  <depend>rosidl_default_runtime</depend>
-
   <!-- GTSAM -->
   <depend>gtsam</depend>
 
+  <!-- Cloud Msg -->
+  <depend>cloud_msg</depend>
 
-  <test_depend>ament_lint_auto</test_depend>
-  <test_depend>ament_lint_common</test_depend>
+
 
   <exec_depend>ros2launch</exec_depend>
 

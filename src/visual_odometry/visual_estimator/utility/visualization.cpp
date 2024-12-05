@@ -26,29 +26,29 @@ void registerPub(std::shared_ptr<rclcpp::Node> node_in)
 {
     node = node_in;
 
-    pub_latest_odometry = node_in->create_publisher<nav_msgs::msg::Odometry>       ("vins/odometry/imu_propagate", 10);
-    pub_latest_odometry_ros = node_in->create_publisher<nav_msgs::msg::Odometry>   ("vins/odometry/imu_propagate_ros", 10);
-    pub_path = node_in->create_publisher<nav_msgs::msg::Path>                      ("vins/odometry/path", 10);
-    pub_odometry = node_in->create_publisher<nav_msgs::msg::Odometry>              ("vins/odometry/odometry", 10);
-    pub_point_cloud = node_in->create_publisher<sensor_msgs::msg::PointCloud>      ("vins/odometry/point_cloud", 10);
-    pub_margin_cloud = node_in->create_publisher<sensor_msgs::msg::PointCloud>     ("vins/odometry/history_cloud", 10);
-    pub_point_cloud1 = node_in->create_publisher<sensor_msgs::msg::PointCloud>     ("vins/odometry/point_cloud_1", 10);
-    pub_margin_cloud1 = node_in->create_publisher<sensor_msgs::msg::PointCloud>    ("vins/odometry/history_cloud_1", 10);
-    pub_point_cloud2 = node_in->create_publisher<sensor_msgs::msg::PointCloud>     ("vins/odometry/point_cloud_2", 10);
-    pub_margin_cloud2 = node_in->create_publisher<sensor_msgs::msg::PointCloud>    ("vins/odometry/history_cloud_2", 10);
-    pub_key_poses = node_in->create_publisher<visualization_msgs::msg::Marker>     ("vins/odometry/key_poses", 10);
-    pub_camera_pose = node_in->create_publisher<nav_msgs::msg::Odometry>           ("vins/odometry/camera_pose", 10);
-    pub_camera_pose1 = node_in->create_publisher<nav_msgs::msg::Odometry>          ("vins/odometry/camera_pose_1", 10);
-    pub_camera_pose2 = node_in->create_publisher<nav_msgs::msg::Odometry>          ("vins/odometry/camera_pose_2", 10);
+    pub_latest_odometry = node_in->create_publisher<nav_msgs::msg::Odometry>       (PROJECT_NAME + "/vins/odometry/imu_propagate", 10);
+    pub_latest_odometry_ros = node_in->create_publisher<nav_msgs::msg::Odometry>   (PROJECT_NAME + "/vins/odometry/imu_propagate_ros", 10);
+    pub_path = node_in->create_publisher<nav_msgs::msg::Path>                      (PROJECT_NAME + "/vins/odometry/path", 10);
+    pub_odometry = node_in->create_publisher<nav_msgs::msg::Odometry>              (PROJECT_NAME + "/vins/odometry/odometry", 10);
+    pub_point_cloud = node_in->create_publisher<sensor_msgs::msg::PointCloud>      (PROJECT_NAME + "/vins/odometry/point_cloud", 10);
+    pub_margin_cloud = node_in->create_publisher<sensor_msgs::msg::PointCloud>     (PROJECT_NAME + "/vins/odometry/history_cloud", 10);
+    pub_point_cloud1 = node_in->create_publisher<sensor_msgs::msg::PointCloud>     (PROJECT_NAME + "/vins/odometry/point_cloud_1", 10);
+    pub_margin_cloud1 = node_in->create_publisher<sensor_msgs::msg::PointCloud>    (PROJECT_NAME + "/vins/odometry/history_cloud_1", 10);
+    pub_point_cloud2 = node_in->create_publisher<sensor_msgs::msg::PointCloud>     (PROJECT_NAME + "/vins/odometry/point_cloud_2", 10);
+    pub_margin_cloud2 = node_in->create_publisher<sensor_msgs::msg::PointCloud>    (PROJECT_NAME + "/vins/odometry/history_cloud_2", 10);
+    pub_key_poses = node_in->create_publisher<visualization_msgs::msg::Marker>     (PROJECT_NAME + "/vins/odometry/key_poses", 10);
+    pub_camera_pose = node_in->create_publisher<nav_msgs::msg::Odometry>           (PROJECT_NAME + "/vins/odometry/camera_pose", 10);
+    pub_camera_pose1 = node_in->create_publisher<nav_msgs::msg::Odometry>          (PROJECT_NAME + "/vins/odometry/camera_pose_1", 10);
+    pub_camera_pose2 = node_in->create_publisher<nav_msgs::msg::Odometry>          (PROJECT_NAME + "/vins/odometry/camera_pose_2", 10);
     pub_camera_pose_visual = node_in->create_publisher<visualization_msgs::msg::MarkerArray>
-                                                                                ("vins/odometry/camera_pose_visual", 10);
+                                                                                    (PROJECT_NAME + "/vins/odometry/camera_pose_visual", 10);
     pub_camera_pose_visual1 = node_in->create_publisher<visualization_msgs::msg::MarkerArray>
-                                                                                ("vins/odometry/camera_pose_visual_1", 10);
+                                                                                    (PROJECT_NAME + "/vins/odometry/camera_pose_visual_1", 10);
     pub_camera_pose_visual2 = node_in->create_publisher<visualization_msgs::msg::MarkerArray>
-                                                                                ("vins/odometry/camera_pose_visual_2", 10);
-    pub_keyframe_pose = node_in->create_publisher<nav_msgs::msg::Odometry>         ("vins/odometry/keyframe_pose", 10);
-    pub_keyframe_point = node_in->create_publisher<sensor_msgs::msg::PointCloud>   ("vins/odometry/keyframe_point", 10);
-    pub_extrinsic = node_in->create_publisher<nav_msgs::msg::Odometry>             ("vins/odometry/extrinsic", 10);
+                                                                                    (PROJECT_NAME + "/vins/odometry/camera_pose_visual_2", 10);
+    pub_keyframe_pose = node_in->create_publisher<nav_msgs::msg::Odometry>         (PROJECT_NAME + "/vins/odometry/keyframe_pose", 10);
+    pub_keyframe_point = node_in->create_publisher<sensor_msgs::msg::PointCloud>   (PROJECT_NAME + "/vins/odometry/keyframe_point", 10);
+    pub_extrinsic = node_in->create_publisher<nav_msgs::msg::Odometry>             (PROJECT_NAME + "/vins/odometry/extrinsic", 10);
 
 
     cameraposevisual.setScale(1);
@@ -65,11 +65,11 @@ tf2::Transform transformConversion(const geometry_msgs::msg::TransformStamped& t
 {
     tf2::Transform transform;
     tf2::fromMsg(t.transform, transform);   // TODO fromMsg() check if implemented!
-    RCLCPP_INFO(node->get_logger(), "Check if values match: translation %f, %f, %f", t.transform.translation.x, t.transform.translation.y, t.transform.translation.z);
-    RCLCPP_INFO(node->get_logger(), ".. and ........................... %f, %f, %f", transform.getOrigin().getX(), transform.getOrigin().getY(), transform.getOrigin().getZ());
+    //RCLCPP_INFO(node->get_logger(), "Check if values match: translation %f, %f, %f", t.transform.translation.x, t.transform.translation.y, t.transform.translation.z);
+    //RCLCPP_INFO(node->get_logger(), ".. and ........................... %f, %f, %f", transform.getOrigin().getX(), transform.getOrigin().getY(), transform.getOrigin().getZ());
 
-    RCLCPP_INFO(node->get_logger(), "Check if values match: rotation %f, %f, %f, %f", t.transform.rotation.x, t.transform.rotation.y, t.transform.rotation.z, t.transform.rotation.w);
-    RCLCPP_INFO(node->get_logger(), ".. and ........................ %f, %f, %f, %f", transform.getRotation().getX(), transform.getRotation().getY(), transform.getRotation().getZ(), transform.getRotation().getW());
+    //RCLCPP_INFO(node->get_logger(), "Check if values match: rotation %f, %f, %f, %f", t.transform.rotation.x, t.transform.rotation.y, t.transform.rotation.z, t.transform.rotation.w);
+    //RCLCPP_INFO(node->get_logger(), ".. and ........................ %f, %f, %f, %f", transform.getRotation().getX(), transform.getRotation().getY(), transform.getRotation().getZ(), transform.getRotation().getW());
 
     return transform;
 }
@@ -81,7 +81,7 @@ void pubLatestOdometry(const Eigen::Vector3d &P, const Eigen::Quaterniond &Q, co
     static tf2_ros::Buffer tfBuffer(node->get_clock());
     static tf2_ros::TransformListener listener(tfBuffer);
     static double last_align_time = -1;
-    RCLCPP_INFO(node->get_logger(), "publishing latest odometry");
+    // RCLCPP_INFO(node->get_logger(), "publishing latest odometry");
 
     // Quternion not normalized
     if (Q.x() * Q.x() + Q.y() * Q.y() + Q.z() * Q.z() + Q.w() * Q.w() < 0.99)
@@ -155,7 +155,7 @@ void pubLatestOdometry(const Eigen::Vector3d &P, const Eigen::Quaterniond &Q, co
     trans_world_vinsbody_ros.transform.rotation = tf2::toMsg(q_odom_ros);
 
     br.sendTransform(trans_world_vinsbody_ros);
-    RCLCPP_INFO(node->get_logger(), "sending vins_world - vins_body_ros");
+    // RCLCPP_INFO(node->get_logger(), "sending vins_world - vins_body_ros");
 
     if (ALIGN_CAMERA_LIDAR_COORDINATE)
     {
@@ -185,7 +185,7 @@ void pubLatestOdometry(const Eigen::Vector3d &P, const Eigen::Quaterniond &Q, co
         transform_stamped.transform = tf2::toMsg(t_odom_world);
 
         br.sendTransform(transform_stamped);
-        RCLCPP_INFO(node->get_logger(), "sending odom - vins_world");
+        // RCLCPP_INFO(node->get_logger(), "sending odom - vins_world");
 
     }
     else
@@ -206,7 +206,7 @@ void pubLatestOdometry(const Eigen::Vector3d &P, const Eigen::Quaterniond &Q, co
 
         br.sendTransform(transform_stamped);
 
-        RCLCPP_INFO(node->get_logger(), "sending odom - vins_world");
+       // RCLCPP_INFO(node->get_logger(), "sending odom - vins_world");
 
 
     }
@@ -733,7 +733,7 @@ void pubTF(const Estimator &estimator, const std_msgs::msg::Header &header)
     tmp_transform_stamped.transform = tf2::toMsg(transform);
 
     br.sendTransform(tmp_transform_stamped);
-    RCLCPP_INFO(node->get_logger(), "sending vins_world - vins_body");
+    // RCLCPP_INFO(node->get_logger(), "sending vins_world - vins_body");
 
 
     // camera frame
@@ -753,7 +753,7 @@ void pubTF(const Estimator &estimator, const std_msgs::msg::Header &header)
     tmp_transform_stamped.transform = tf2::toMsg(transform);
 
     br.sendTransform(tmp_transform_stamped);
-    RCLCPP_INFO(node->get_logger(), "sending vins_body - vins_camera");
+    // RCLCPP_INFO(node->get_logger(), "sending vins_body - vins_camera");
 
 
 
@@ -773,7 +773,7 @@ void pubTF(const Estimator &estimator, const std_msgs::msg::Header &header)
     tmp_transform_stamped.transform = tf2::toMsg(transform1);
 
     br.sendTransform(tmp_transform_stamped);
-    RCLCPP_INFO(node->get_logger(), "sending vins_world - vins_camera_1");
+    // RCLCPP_INFO(node->get_logger(), "sending vins_world - vins_camera_1");
 
 
     nav_msgs::msg::Odometry odometry;

@@ -74,7 +74,7 @@ public:
                     });
             lk.unlock();
             m_estimator.lock();
-            RCLCPP_INFO(this->get_logger(), "PROCESSING MEASUREMENTS");
+            // RCLCPP_INFO(this->get_logger(), "PROCESSING MEASUREMENTS");
             for (auto &measurement : measurements)
             {
                 auto img_msg = std::get<1>(measurement);
@@ -196,7 +196,7 @@ public:
 
 
             m_estimator.unlock();
-            RCLCPP_INFO(this->get_logger(), "MEASUREMENTS PROCESSED");
+            // RCLCPP_INFO(this->get_logger(), "MEASUREMENTS PROCESSED");
 
             m_buf.lock();
             m_state.lock();
@@ -292,7 +292,7 @@ private:
         m_odom.lock();
         odomQueue.push_back(odom_msg);
         m_odom.unlock();
-        RCLCPP_INFO(this->get_logger(), "odom callback works");
+        // RCLCPP_INFO(this->get_logger(), "odom callback works");
     }
 
     void predict(const sensor_msgs::msg::Imu::SharedPtr &imu_msg)
