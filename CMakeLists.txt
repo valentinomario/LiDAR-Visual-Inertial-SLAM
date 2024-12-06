@@ -22,10 +22,12 @@ find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
+find_package(pcl_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(pcl_conversions REQUIRED)
 find_package(PCL REQUIRED)
+set(OpenCV_STATIC ON)
 find_package(OpenCV REQUIRED)
 find_package(Ceres REQUIRED)
 find_package(GTSAM REQUIRED QUIET)
@@ -150,6 +152,7 @@ ament_target_dependencies(${PROJECT_NAME}_imuPreintegration
         std_msgs
         PCL
         pcl_conversions
+        pcl_msgs
         tf2
         tf2_ros
         tf2_geometry_msgs
@@ -171,6 +174,7 @@ ament_target_dependencies(${PROJECT_NAME}_imageProjection
         std_msgs
         PCL
         pcl_conversions
+        pcl_msgs
         tf2
         tf2_ros
         tf2_geometry_msgs
@@ -191,15 +195,34 @@ ament_target_dependencies(${PROJECT_NAME}_featureExtraction
         visualization_msgs
         PCL
         pcl_conversions
+        pcl_msgs
         tf2
         tf2_ros
         tf2_geometry_msgs
 )
 
 # Mapping Optimization
-# add_executable(${PROJECT_NAME}_mapOptimization src/lidar_odometry/mapOptmization.cpp include/ikd-Tree/ikd_Tree.cpp)
-# ament_target_dependencies(${PROJECT_NAME}_mapOptimization rclcpp sensor_msgs std_msgs PCL GTSAM OpenMP)
-# target_compile_options(${PROJECT_NAME}_mapOptimization PRIVATE ${OpenMP_CXX_FLAGS})
+add_executable(${PROJECT_NAME}_mapOptimization src/lidar_odometry/mapOptimization.cpp
+        include/ikd-Tree/ikd_Tree.cpp
+)
+ament_target_dependencies(${PROJECT_NAME}_mapOptimization
+        rclcpp
+        sensor_msgs
+        std_msgs
+        cloud_msg
+        nav_msgs
+        visualization_msgs
+        PCL
+        pcl_conversions
+        pcl_msgs
+        tf2
+        tf2_ros
+        tf2_geometry_msgs
+        GTSAM
+        OpenMP
+)
+
+target_compile_options(${PROJECT_NAME}_mapOptimization PRIVATE ${OpenMP_CXX_FLAGS})
 
 # Test
 # add_executable(${PROJECT_NAME}_msgTest src/lidar_odometry/msgTest.cpp)
@@ -233,6 +256,7 @@ install(TARGETS
         ${PROJECT_NAME}_imuPreintegration
         ${PROJECT_NAME}_imageProjection
         ${PROJECT_NAME}_featureExtraction
+        ${PROJECT_NAME}_mapOptimization
 
         DESTINATION lib/${PROJECT_NAME}
 )
