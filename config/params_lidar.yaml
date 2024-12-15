@@ -1,11 +1,11 @@
 /**:
   ros__parameters:
     # Topics
-    pointCloudTopic: "/hesai/pandar"               # Point cloud data
-    imuTopic: "/imu_data"                          # IMU data
+    pointCloudTopic: "/livox/lidar"               # Point cloud data
+    imuTopic: "/livox/imu"                          # IMU data
 
     # Heading
-    useImuHeadingInitialization: true             # if using GPS data, set to "true"
+    useImuHeadingInitialization: false             # if using GPS data, set to "true"
 
     # Export settings
     savePCD: false                                # https://github.com/TixiaoShan/LIO-SAM/issues/3
@@ -17,7 +17,7 @@
     ang_res_y: 1.0                                # vertical resolution of lidar
     lidar_type: 2                                 # 1 for ouster, 2 for hesai, 3 for velodyne
     timeField: "timestamp"                        # point timestamp field
-    downsampleRate: 2                             # downsample data if too many points
+    downsampleRate: 1                             # downsample data if too many points
     lidarMaxRange: 50.0
     lidarMinRange: 0.5
     NUM_OF_CAM: 2
@@ -37,8 +37,8 @@
     imuGravity: 9.80
 
     # Extrinsics (lidar -> IMU)
-    extrinsicTrans: [-0.0204, 0.0175, 0.0642]
-    extrinsicRot: [-0.9741, 0.2262, 0.0008, -0.2261, -0.9740, 0.0147, 0.0041, 0.0141, 0.9999]
+    extrinsicTrans: [0.0, 0.0, 0.0]
+    extrinsicRot: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
     extrinsicRPY: [0.0, -1.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, -1.0]
 
     # LOAM feature threshold
