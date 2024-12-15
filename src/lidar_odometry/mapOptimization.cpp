@@ -2,6 +2,7 @@
 #include "cloud_msg/msg/cloud_info.hpp"
 
 #include <pcl/common/angles.h>
+#include <pcl/registration/icp.h>
 #include <gtsam/geometry/Rot3.h>
 #include <gtsam/geometry/Pose3.h>
 #include <gtsam/slam/PriorFactor.h>
@@ -90,6 +91,20 @@ pcl::PointCloud<PointType>::Ptr transformPointCloud(pcl::PointCloud<PointType>::
 Eigen::Affine3f pclPointToAffine3f(PointTypePose thisPoint)
 {
     return pcl::getTransformation(thisPoint.x, thisPoint.y, thisPoint.z, thisPoint.roll, thisPoint.pitch, thisPoint.yaw);
+}
+
+gtsam::Pose3 affine3fTogtsamPose3(const Eigen::Affine3f& thisPose)
+{
+    float x, y, z, roll, pitch, yaw;
+    pcl::getTranslationAndEulerAngles(thisPose, x, y, z, roll, pitch, yaw);
+    return gtsam::Pose3(gtsam::Rot3::RzRyRx(double(roll), double(pitch), double(yaw)),
+                              gtsam::Point3(double(x),    double(y),     double(z)));
+}
+
+gtsam::Pose3 pclPointTogtsamPose3(PointTypePose thisPoint)
+{
+    return gtsam::Pose3(gtsam::Rot3::RzRyRx(double(thisPoint.roll), double(thisPoint.pitch), double(thisPoint.yaw)),
+                              gtsam::Point3(double(thisPoint.x),    double(thisPoint.y),     double(thisPoint.z)));
 }
 
 float calc_dist(PointType p1, PointType p2)
@@ -306,7 +321,237 @@ private:
         // RCLCPP_INFO(this->get_logger(), "lasercloudinfo done");
     }
 
-    void loopHandler(std_msgs::msg::Float64MultiArray::SharedPtr loopMsg) {}
+    void loopHandler(std_msgs::msg::Float64MultiArray::SharedPtr loopMsg)
+    {
+        // control loop closure frequency
+        static double last_loop_closure_time = -1;
+        {
+            // std::lock_guard<std::mutex> lock(mtx);
+            if (timeLaserInfoCur - last_loop_closure_time < 5.0)
+                return;
+            else
+                last_loop_closure_time = timeLaserInfoCur;
+        }
+
+        performLoopClosure(*loopMsg);
+    }
+
+    void loopFindKey(const std_msgs::msg::Float64MultiArray& loopMsg,
+                 const pcl::PointCloud<PointTypePose>::Ptr& copy_cloudKeyPoses6D,
+                 int& key_cur, int& key_pre)
+    {
+        if (loopMsg.data.size() != 2)
+            return;
+
+        double loop_time_cur = loopMsg.data[0];
+        double loop_time_pre = loopMsg.data[1];
+
+        if (abs(loop_time_cur - loop_time_pre) < historyKeyframeSearchTimeDiff)
+            return;
+
+        int cloudSize = copy_cloudKeyPoses6D->size();
+        if (cloudSize < 2)
+            return;
+
+        // latest key
+        key_cur = cloudSize - 1;
+        for (int i = cloudSize - 1; i >= 0; --i)
+        {
+            if (copy_cloudKeyPoses6D->points[i].time > loop_time_cur)
+                key_cur = round(copy_cloudKeyPoses6D->points[i].intensity);
+            else
+                break;
+        }
+
+        // previous key
+        key_pre = 0;
+        for (int i = 0; i < cloudSize; ++i)
+        {
+            if (copy_cloudKeyPoses6D->points[i].time < loop_time_pre)
+                key_pre = round(copy_cloudKeyPoses6D->points[i].intensity);
+            else
+                break;
+        }
+    }
+
+    void loopFindNearKeyframes(const pcl::PointCloud<PointTypePose>::Ptr& copy_cloudKeyPoses6D,
+                               pcl::PointCloud<PointType>::Ptr& nearKeyframes,
+                               const int& key, const int& searchNum)
+    {
+        // extract near keyframes
+        nearKeyframes->clear();
+        int cloudSize = copy_cloudKeyPoses6D->size();
+        for (int i = -searchNum; i <= searchNum; ++i)
+        {
+            int key_near = key + i;
+            if (key_near < 0 || key_near >= cloudSize )
+                continue;
+            *nearKeyframes += *transformPointCloud(cornerCloudKeyFrames[key_near], &copy_cloudKeyPoses6D->points[key_near]);
+            *nearKeyframes += *transformPointCloud(surfCloudKeyFrames[key_near],   &copy_cloudKeyPoses6D->points[key_near]);
+        }
+
+        if (nearKeyframes->empty())
+            return;
+
+        // downsample near keyframes
+        pcl::PointCloud<PointType>::Ptr cloud_temp(new pcl::PointCloud<PointType>());
+        downSizeFilterICP.setInputCloud(nearKeyframes);
+        downSizeFilterICP.filter(*cloud_temp);
+        *nearKeyframes = *cloud_temp;
+    }
+
+    void performLoopClosure(const std_msgs::msg::Float64MultiArray& loopMsg)
+    {
+        pcl::PointCloud<PointTypePose>::Ptr copy_cloudKeyPoses6D(new pcl::PointCloud<PointTypePose>());
+        {
+            std::lock_guard<std::mutex> lock(mtx);
+            *copy_cloudKeyPoses6D = *cloudKeyPoses6D;
+        }
+
+        // get lidar keyframe id
+        int key_cur = -1; // latest lidar keyframe id
+        int key_pre = -1; // previous lidar keyframe id
+        {
+            loopFindKey(loopMsg, copy_cloudKeyPoses6D, key_cur, key_pre);
+            if (key_cur == -1 || key_pre == -1 || key_cur == key_pre)// || abs(key_cur - key_pre) < 25)
+                return;
+        }
+
+        // check if loop added before
+        {
+            // if image loop closure comes at high frequency, many image loop may point to the same key_cur
+            auto it = loopIndexContainer.find(key_cur);
+            if (it != loopIndexContainer.end())
+                return;
+        }
+
+        // get lidar keyframe cloud
+        pcl::PointCloud<PointType>::Ptr cureKeyframeCloud(new pcl::PointCloud<PointType>());
+        pcl::PointCloud<PointType>::Ptr prevKeyframeCloud(new pcl::PointCloud<PointType>());
+        {
+            loopFindNearKeyframes(copy_cloudKeyPoses6D, cureKeyframeCloud, key_cur, 0);
+            loopFindNearKeyframes(copy_cloudKeyPoses6D, prevKeyframeCloud, key_pre, historyKeyframeSearchNum);
+            if (cureKeyframeCloud->size() < 300 || prevKeyframeCloud->size() < 1000)
+                return;
+            if (pubHistoryKeyFrames->get_subscription_count() != 0)
+                publishCloud(pubHistoryKeyFrames, prevKeyframeCloud, timeLaserInfoStamp, "odom");
+        }
+
+        // get keyframe pose
+        Eigen::Affine3f pose_cur;
+        Eigen::Affine3f pose_pre;
+        Eigen::Affine3f pose_diff_t; // serves as initial guess
+        {
+            pose_cur = pclPointToAffine3f(copy_cloudKeyPoses6D->points[key_cur]);
+            pose_pre = pclPointToAffine3f(copy_cloudKeyPoses6D->points[key_pre]);
+
+            Eigen::Vector3f t_diff;
+            t_diff.x() = - (pose_cur.translation().x() - pose_pre.translation().x());
+            t_diff.y() = - (pose_cur.translation().y() - pose_pre.translation().y());
+            t_diff.z() = - (pose_cur.translation().z() - pose_pre.translation().z());
+            if (t_diff.norm() < historyKeyframeSearchRadius)
+                t_diff.setZero();
+            pose_diff_t = pcl::getTransformation(t_diff.x(), t_diff.y(), t_diff.z(), 0, 0, 0);
+        }
+
+        // transform and rotate cloud for matching
+        pcl::IterativeClosestPoint<PointType, PointType> icp;
+        // pcl::GeneralizedIterativeClosestPoint<PointType, PointType> icp;
+        icp.setMaxCorrespondenceDistance(historyKeyframeSearchRadius * 2);
+        icp.setMaximumIterations(100);
+        icp.setRANSACIterations(0);
+        icp.setTransformationEpsilon(1e-3);
+        icp.setEuclideanFitnessEpsilon(1e-3);
+
+        // initial guess cloud
+        pcl::PointCloud<PointType>::Ptr cureKeyframeCloud_new(new pcl::PointCloud<PointType>());
+        pcl::transformPointCloud(*cureKeyframeCloud, *cureKeyframeCloud_new, pose_diff_t);
+
+        // match using icp
+        icp.setInputSource(cureKeyframeCloud_new);
+        icp.setInputTarget(prevKeyframeCloud);
+        pcl::PointCloud<PointType>::Ptr unused_result(new pcl::PointCloud<PointType>());
+        icp.align(*unused_result);
+
+        if (pubIcpKeyFrames->get_subscription_count() != 0)
+        {
+            pcl::PointCloud<PointType>::Ptr closed_cloud(new pcl::PointCloud<PointType>());
+            pcl::transformPointCloud(*cureKeyframeCloud_new, *closed_cloud, icp.getFinalTransformation());
+            publishCloud(pubIcpKeyFrames, closed_cloud, timeLaserInfoStamp, "odom");
+        }
+
+        // add graph factor
+        if (icp.getFitnessScore() < historyKeyframeFitnessScore && icp.hasConverged() == true)
+        {
+            // get gtsam pose
+            gtsam::Pose3 poseFrom = affine3fTogtsamPose3(Eigen::Affine3f(icp.getFinalTransformation()) * pose_diff_t * pose_cur);
+            gtsam::Pose3 poseTo   = pclPointTogtsamPose3(copy_cloudKeyPoses6D->points[key_pre]);
+            // get noise
+            float noise = icp.getFitnessScore();
+            gtsam::Vector Vector6(6);
+            Vector6 << noise, noise, noise, noise, noise, noise;
+            noiseModel::Diagonal::shared_ptr constraintNoise = noiseModel::Diagonal::Variances(Vector6);
+            // save pose constraint
+            mtx.lock();
+            loopIndexQueue.push_back(make_pair(key_cur, key_pre));
+            loopPoseQueue.push_back(poseFrom.between(poseTo));
+            loopNoiseQueue.push_back(constraintNoise);
+            mtx.unlock();
+            // add loop pair to container
+            loopIndexContainer[key_cur] = key_pre;
+        }
+
+        // visualize loop constraints
+        if (!loopIndexContainer.empty())
+        {
+            visualization_msgs::msg::MarkerArray markerArray;
+            // loop nodes
+            visualization_msgs::msg::Marker markerNode;
+            markerNode.header.frame_id = "odom";
+            markerNode.header.stamp = timeLaserInfoStamp;
+            markerNode.action = visualization_msgs::msg::Marker::ADD;
+            markerNode.type = visualization_msgs::msg::Marker::SPHERE_LIST;
+            markerNode.ns = "loop_nodes";
+            markerNode.id = 0;
+            markerNode.pose.orientation.w = 1;
+            markerNode.scale.x = 0.3; markerNode.scale.y = 0.3; markerNode.scale.z = 0.3;
+            markerNode.color.r = 0; markerNode.color.g = 0.8; markerNode.color.b = 1;
+            markerNode.color.a = 1;
+            // loop edges
+            visualization_msgs::msg::Marker markerEdge;
+            markerEdge.header.frame_id = "odom";
+            markerEdge.header.stamp = timeLaserInfoStamp;
+            markerEdge.action = visualization_msgs::msg::Marker::ADD;
+            markerEdge.type = visualization_msgs::msg::Marker::LINE_LIST;
+            markerEdge.ns = "loop_edges";
+            markerEdge.id = 1;
+            markerEdge.pose.orientation.w = 1;
+            markerEdge.scale.x = 0.1;
+            markerEdge.color.r = 0.9; markerEdge.color.g = 0.9; markerEdge.color.b = 0;
+            markerEdge.color.a = 1;
+
+            for (auto it = loopIndexContainer.begin(); it != loopIndexContainer.end(); ++it)
+            {
+                int key_cur = it->first;
+                int key_pre = it->second;
+                geometry_msgs::msg::Point p;
+                p.x = copy_cloudKeyPoses6D->points[key_cur].x;
+                p.y = copy_cloudKeyPoses6D->points[key_cur].y;
+                p.z = copy_cloudKeyPoses6D->points[key_cur].z;
+                markerNode.points.push_back(p);
+                markerEdge.points.push_back(p);
+                p.x = copy_cloudKeyPoses6D->points[key_pre].x;
+                p.y = copy_cloudKeyPoses6D->points[key_pre].y;
+                p.z = copy_cloudKeyPoses6D->points[key_pre].z;
+                markerNode.points.push_back(p);
+                markerEdge.points.push_back(p);
+            }
+
+            markerArray.markers.push_back(markerNode);
+            markerArray.markers.push_back(markerEdge);
+            pubLoopConstraintEdge->publish(markerArray);
+        }
+    }
 
     void allocateMemory()
     {
