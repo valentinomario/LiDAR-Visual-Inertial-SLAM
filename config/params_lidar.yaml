@@ -23,8 +23,8 @@
     NUM_OF_CAM: 2
     feature_enable: 0
     remove_noise: 0
-    fov_min_theta: 36
-    fov_max_theta: 98
+    fov_min_theta: 36.0
+    fov_max_theta: 98.0
     VRES: 40 # vertical and horizontal resolution for organizing point cloud
     HRES: 2000
 

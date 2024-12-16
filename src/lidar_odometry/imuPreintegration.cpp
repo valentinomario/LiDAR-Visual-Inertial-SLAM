@@ -36,17 +36,6 @@ public:
         declareParameters(shared_from_this());
         getParameters(shared_from_this());
 
-        extRot = Eigen::Map<const Eigen::Matrix<double, -1, -1, Eigen::RowMajor>>(extRotV.data(), 3, 3);
-        extRPY = Eigen::Map<const Eigen::Matrix<double, -1, -1, Eigen::RowMajor>>(extRPYV.data(), 3, 3);
-        extTrans = Eigen::Map<const Eigen::Matrix<double, -1, -1, Eigen::RowMajor>>(extTransV.data(), 3, 1);
-        extQRPY = Eigen::Quaterniond(extRPY);
-
-        q_lidar2imu = extRot;
-        R_imu2lidar = extRot.inverse();
-        q_imu2lidar = R_imu2lidar;
-        t_imu2lidar = -R_imu2lidar * extTrans;
-
-
         // usleep(100);
 
         tfMap2Odom = std::make_unique<tf2_ros::TransformBroadcaster>(*this);

@@ -34,7 +34,7 @@ public:
         pubCornerPoints = this->create_publisher<sensor_msgs::msg::PointCloud2>(PROJECT_NAME + "/lidar/feature/cloud_corner", 5);
         pubSurfacePoints = this->create_publisher<sensor_msgs::msg::PointCloud2>(PROJECT_NAME + "/lidar/feature/cloud_surface", 5);
 
-        cloudSmoothness.resize(N_SCAN*Horizon_SCAN);
+        cloudSmoothness.resize(VRES*HRES);
 
         downSizeFilter.setLeafSize(odometrySurfLeafSize, odometrySurfLeafSize, odometrySurfLeafSize);
 
@@ -42,9 +42,9 @@ public:
         cornerCloud.reset(new pcl::PointCloud<PointType>());
         surfaceCloud.reset(new pcl::PointCloud<PointType>());
 
-        cloudCurvature = new float[N_SCAN*Horizon_SCAN];
-        cloudNeighborPicked = new int[N_SCAN*Horizon_SCAN];
-        cloudLabel = new int[N_SCAN*Horizon_SCAN];
+        cloudCurvature = new float[VRES*HRES];
+        cloudNeighborPicked = new int[VRES*HRES];
+        cloudLabel = new int[VRES*HRES];
 
         RCLCPP_INFO(this->get_logger(), "-----feature extraction's publishers initialized-----");
 

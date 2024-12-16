@@ -569,12 +569,12 @@ private:
         laserCloudOri.reset(new pcl::PointCloud<PointType>());
         coeffSel.reset(new pcl::PointCloud<PointType>());
 
-        laserCloudOriCornerVec.resize(N_SCAN * Horizon_SCAN);
-        coeffSelCornerVec.resize(N_SCAN * Horizon_SCAN);
-        laserCloudOriCornerFlag.resize(N_SCAN * Horizon_SCAN);
-        laserCloudOriSurfVec.resize(N_SCAN * Horizon_SCAN);
-        coeffSelSurfVec.resize(N_SCAN * Horizon_SCAN);
-        laserCloudOriSurfFlag.resize(N_SCAN * Horizon_SCAN);
+        laserCloudOriCornerVec.resize(VRES * HRES);
+        coeffSelCornerVec.resize(VRES * HRES);
+        laserCloudOriCornerFlag.resize(VRES * HRES);
+        laserCloudOriSurfVec.resize(VRES * HRES);
+        coeffSelSurfVec.resize(VRES * HRES);
+        laserCloudOriSurfFlag.resize(VRES * HRES);
 
         std::fill(laserCloudOriCornerFlag.begin(), laserCloudOriCornerFlag.end(), false);
         std::fill(laserCloudOriSurfFlag.begin(), laserCloudOriSurfFlag.end(), false);

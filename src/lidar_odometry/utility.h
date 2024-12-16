@@ -52,21 +52,21 @@ public:
     string pointCloudTopic;
     string imuTopic;
     string odomTopic;
-    string gpsTopic;
+    // string gpsTopic;
 
     // GPS Settings
     bool useImuHeadingInitialization;
-    bool useGpsElevation;
-    float gpsCovThreshold;
-    float poseCovThreshold;
+    // bool useGpsElevation;
+    // float gpsCovThreshold;
+    // float poseCovThreshold;
 
     // Save pcd
     bool savePCD;
     string savePCDDirectory;
 
     // Lidar Sensor Configuration: Velodyne
-    int N_SCAN;
-    int Horizon_SCAN;
+    // int N_SCAN;
+    // int Horizon_SCAN;
     float ang_res_y;
     int lidar_type;
     string timeField;
@@ -80,6 +80,11 @@ public:
     int min_cluster_size;
     int segment_valid_point_num;
     int segment_valid_line_num;
+
+    float fov_min_theta;
+    float fov_max_theta;
+    int HRES;
+    int VRES;
 
     // IMU
     float imuAccNoise;
@@ -202,21 +207,21 @@ public:
         // TODO set defaults
         node->declare_parameter<std::string>("PROJECT_NAME", "emv_lio2");
         node->declare_parameter<std::string>("robot_id", "roboat");
-        node->declare_parameter<std::string>("pointCloudTopic", "/hesai/pandar");
-        node->declare_parameter<std::string>("imuTopic", "imu_data");
+        node->declare_parameter<std::string>("pointCloudTopic", "/livox/lidar");
+        node->declare_parameter<std::string>("imuTopic", "/livox/imu");
         node->declare_parameter<std::string>("odomTopic", "odometry/imu");
-        node->declare_parameter<std::string>("gpsTopic", "odometry/gps");
+        // node->declare_parameter<std::string>("gpsTopic", "odometry/gps");
 
         node->declare_parameter<bool>("useImuHeadingInitialization", false);
-        node->declare_parameter<bool>("useGpsElevation", false);
-        node->declare_parameter<float>("gpsCovThreshold", 2.0);
-        node->declare_parameter<float>("poseCovThreshold", 25.0);
+        // node->declare_parameter<bool>("useGpsElevation", false);
+        // node->declare_parameter<float>("gpsCovThreshold", 2.0);
+        // node->declare_parameter<float>("poseCovThreshold", 25.0);
 
         node->declare_parameter<bool>("savePCD", false);
         node->declare_parameter<std::string>("savePCDDirectory", "/tmp/loam/");
 
-        node->declare_parameter<int>("N_SCAN", 32);
-        node->declare_parameter<int>("Horizon_SCAN", 2000);
+        // node->declare_parameter<int>("N_SCAN", 32);
+        // node->declare_parameter<int>("Horizon_SCAN", 2000);
         node->declare_parameter<float>("ang_res_y", 1.0);
         node->declare_parameter<int>("lidar_type", 2);
         node->declare_parameter<std::string>("timeField", "timestamp");
@@ -225,6 +230,11 @@ public:
         node->declare_parameter<float>("lidarMinRange", 0.5);
         node->declare_parameter<int>("feature_enable", 0);
         node->declare_parameter<int>("remove_noise", 0);
+
+        node->declare_parameter<float>("fov_min_theta", 36.0);
+        node->declare_parameter<float>("fov_max_theta", 98.0);
+        node->declare_parameter<int>("VRES", 40);
+        node->declare_parameter<int>("HRES", 2000);
 
         node->declare_parameter<int>("min_cluster_size", 10);
         node->declare_parameter<int>("segment_valid_point_num", 5);
@@ -279,18 +289,18 @@ public:
         node->get_parameter("pointCloudTopic", pointCloudTopic);
         node->get_parameter("imuTopic", imuTopic);
         node->get_parameter("odomTopic", odomTopic);
-        node->get_parameter("gpsTopic", gpsTopic);
+        // node->get_parameter("gpsTopic", gpsTopic);
 
         node->get_parameter("useImuHeadingInitialization", useImuHeadingInitialization);
-        node->get_parameter("useGpsElevation", useGpsElevation);
-        node->get_parameter("gpsCovThreshold", gpsCovThreshold);
-        node->get_parameter("poseCovThreshold", poseCovThreshold);
+        // node->get_parameter("useGpsElevation", useGpsElevation);
+        // node->get_parameter("gpsCovThreshold", gpsCovThreshold);
+        // node->get_parameter("poseCovThreshold", poseCovThreshold);
 
         node->get_parameter("savePCD", savePCD);
         node->get_parameter("savePCDDirectory", savePCDDirectory);
 
-        node->get_parameter("N_SCAN", N_SCAN);
-        node->get_parameter("Horizon_SCAN", Horizon_SCAN);
+        //node->get_parameter("N_SCAN", N_SCAN);
+        //node->get_parameter("Horizon_SCAN", Horizon_SCAN);
         node->get_parameter("ang_res_y", ang_res_y);
         node->get_parameter("lidar_type", lidar_type);
         node->get_parameter("timeField", timeField);
@@ -299,6 +309,11 @@ public:
         node->get_parameter("lidarMinRange", lidarMinRange);
         node->get_parameter("feature_enable", feature_enable);
         node->get_parameter("remove_noise", remove_noise);
+
+        node->get_parameter("fov_min_theta", fov_min_theta);
+        node->get_parameter("fov_max_theta", fov_max_theta);
+        node->get_parameter("VRES", VRES);
+        node->get_parameter("HRES", HRES);
 
         node->get_parameter("min_cluster_size", min_cluster_size);
         node->get_parameter("segment_valid_point_num", segment_valid_point_num);
@@ -347,7 +362,17 @@ public:
         int paramsCheck;
         node->get_parameter("paramsCheck", paramsCheck);
 
-        if(paramsCheck != 69) throw "Error loading parameters";
+        if(paramsCheck != 69) RCLCPP_ERROR(node->get_logger(), "Error loading parameters from config file");
+
+        extRot = Eigen::Map<const Eigen::Matrix<double, -1, -1, Eigen::RowMajor>>(extRotV.data(), 3, 3);
+        extRPY = Eigen::Map<const Eigen::Matrix<double, -1, -1, Eigen::RowMajor>>(extRPYV.data(), 3, 3);
+        extTrans = Eigen::Map<const Eigen::Matrix<double, -1, -1, Eigen::RowMajor>>(extTransV.data(), 3, 1);
+        extQRPY = Eigen::Quaterniond(extRPY);
+
+        q_lidar2imu = extRot;
+        R_imu2lidar = extRot.inverse();
+        q_imu2lidar = R_imu2lidar;
+        t_imu2lidar = -R_imu2lidar * extTrans;
 
     }
 };
