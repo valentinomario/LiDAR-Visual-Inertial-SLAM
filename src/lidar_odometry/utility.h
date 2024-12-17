@@ -154,8 +154,8 @@ public:
     sensor_msgs::msg::Imu imuConverter(const sensor_msgs::msg::Imu& imu_in,
                                 std::shared_ptr<ImuTracker> imu_tracker)
     {
-    sensor_msgs::msg::Imu imu_out = imu_in;
-    {
+        sensor_msgs::msg::Imu imu_out = imu_in;
+
         // rotate acceleration
         Eigen::Vector3d imu_linear_acceleration(imu_in.linear_acceleration.x,
                             imu_in.linear_acceleration.y,
@@ -198,7 +198,7 @@ public:
             // RCLCPP_ERROR(node->get_logger(), "Invalid quaternion, please use a 9-axis IMU!");
             rclcpp::shutdown();
         }
-    }
+
     return imu_out;
     }
 

@@ -41,6 +41,14 @@ public:
         tfMap2Odom = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
         tfOdom2BaseLink = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
 
+        callbackGroupImu = create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+        callbackGroupOdom = create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+
+        auto imuOpt = rclcpp::SubscriptionOptions();
+        imuOpt.callback_group = callbackGroupImu;
+        auto odomOpt = rclcpp::SubscriptionOptions();
+        odomOpt.callback_group = callbackGroupOdom;
+
         subImu = this->create_subscription<sensor_msgs::msg::Imu>(imuTopic, 2000,
             std::bind(&IMUPreintegration::imuHandler, this, std::placeholders::_1));
         subOdometry = this->create_subscription<nav_msgs::msg::Odometry>(PROJECT_NAME + "/lidar/mapping/odometry", 5,
@@ -108,7 +116,10 @@ private:
         imuQueImu.push_back(thisImu);
 
         if (doneFirstOpt == false)
+        {
+            //RCLCPP_INFO(this->get_logger(), "Waiting first optimization");
             return;
+        }
 
         double imuTime = ROS_TIME(&thisImu);
         double dt = (lastImuT_imu < 0) ? (1.0 / 500.0) : (imuTime - lastImuT_imu);
@@ -171,6 +182,7 @@ private:
             // while(!imuPath.poses.empty() && abs(imuPath.poses.front().header.stamp.toSec() - imuPath.poses.back().header.stamp.toSec()) > 3.0)
             //     imuPath.poses.erase(imuPath.poses.begin());
             while(!imuPath.poses.empty() && abs(ROS_TIME(&imuPath.poses.front()) - ROS_TIME(&imuPath.poses.back())) > 3.0)
+                imuPath.poses.erase(imuPath.poses.begin());
 
             if (pubImuPath->get_subscription_count() != 0)
             {
@@ -358,6 +370,7 @@ private:
         // check optimization
         if (failureDetection(prevVel_, prevBias_))
         {
+            RCLCPP_INFO(this->get_logger(), "Failure in imu odometry handler");
             resetParams();
             return;
         }
@@ -440,7 +453,8 @@ private:
         return false;
     }
 
-
+    rclcpp::CallbackGroup::SharedPtr callbackGroupImu;
+    rclcpp::CallbackGroup::SharedPtr callbackGroupOdom;
 
     rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr subImu;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr subOdometry;
@@ -503,6 +517,7 @@ private:
 
 
 int main(int argc, char **argv) {
+    // args: --ros-args --params-file /home/user/ros2_ws/install/emv_lio2/share/emv_lio2/config/params_lidar.yaml -r __node:=imuPreintegration
     rclcpp::init(argc, argv);
     auto node = std::make_shared<IMUPreintegration>();
     node->initNode();
