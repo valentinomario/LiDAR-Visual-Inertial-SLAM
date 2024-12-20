@@ -34,7 +34,7 @@ find_package(GTSAM REQUIRED QUIET)
 # find_package(Boost REQUIRED COMPONENTS filesystem program_options system)
 find_package(OpenMP REQUIRED)
 find_package(cloud_msg REQUIRED)
-
+find_package(livox_ros_driver2 REQUIRED)
 
 # Include directories
 include_directories(
@@ -155,6 +155,7 @@ ament_target_dependencies(${PROJECT_NAME}_imuPreintegration
         pcl_msgs
         tf2
         tf2_ros
+        tf2_eigen
         tf2_geometry_msgs
         OpenCV
         GTSAM
@@ -177,7 +178,9 @@ ament_target_dependencies(${PROJECT_NAME}_imageProjection
         pcl_msgs
         tf2
         tf2_ros
+        tf2_eigen
         tf2_geometry_msgs
+        livox_ros_driver2
         cloud_msg
         OpenCV
         GTSAM
@@ -198,6 +201,7 @@ ament_target_dependencies(${PROJECT_NAME}_featureExtraction
         pcl_msgs
         tf2
         tf2_ros
+        tf2_eigen
         tf2_geometry_msgs
 )
 
@@ -217,6 +221,7 @@ ament_target_dependencies(${PROJECT_NAME}_mapOptimization
         pcl_msgs
         tf2
         tf2_ros
+        tf2_eigen
         tf2_geometry_msgs
         GTSAM
         OpenMP

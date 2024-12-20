@@ -37,7 +37,7 @@
 
   <!-- Cloud Msg -->
   <depend>cloud_msg</depend>
-
+  <depend>livox_ros_driver2</depend>
 
 
   <exec_depend>ros2launch</exec_depend>

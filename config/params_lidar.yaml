@@ -3,6 +3,13 @@
     # Topics
     pointCloudTopic: "/livox/lidar"               # Point cloud data
     imuTopic: "/livox/imu"                          # IMU data
+    odomTopic: "odometry/imu"                    # IMU pre-preintegration odometry, same frequency as IMU
+
+    # Frames
+    lidarFrame: "laser_sensor_frame"
+    baselinkFrame: "base_link"
+    odometryFrame: "odom"
+    mapFrame: "map"
 
     # Heading
     useImuHeadingInitialization: false             # if using GPS data, set to "true"
@@ -12,49 +19,43 @@
     savePCDDirectory: "/Downloads/LOAM/"          # starts and ends with "/". Warning: deletes folder
 
     # Lidar Settings
-    N_SCAN: 32                                    # number of lidar channels
-    Horizon_SCAN: 2000                            # lidar horizontal resolution
-    ang_res_y: 1.0                                # vertical resolution of lidar
-    lidar_type: 2                                 # 1 for ouster, 2 for hesai, 3 for velodyne
     timeField: "timestamp"                        # point timestamp field
     downsampleRate: 1                             # downsample data if too many points
     lidarMaxRange: 50.0
     lidarMinRange: 0.5
     NUM_OF_CAM: 2
-    feature_enable: 0
-    remove_noise: 0
-    fov_min_theta: 36.0
-    fov_max_theta: 98.0
+    fovMinTheta: 36.0
+    fovMaxTheta: 98.0
     VRES: 40 # vertical and horizontal resolution for organizing point cloud
     HRES: 2000
-
-    # Noise removal settings
-    min_cluster_size: 10
-    segment_valid_point_num: 5
-    segment_valid_line_num: 3
 
     # IMU Settings
     imuAccNoise: 0.03015059
     imuGyrNoise: 0.42306179
     imuAccBiasN: 0.00198931
     imuGyrBiasN: 0.00015932
-    imuGravity: 9.80
+    imuGravity: 9.8
+    imuRPYWeight: 0.01
 
     # Extrinsics (lidar -> IMU)
-    extrinsicTrans: [0.0, 0.0, 0.0]
-    extrinsicRot: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
-    extrinsicRPY: [0.0, -1.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, -1.0]
+    extrinsicTrans:  [ 0.0,  0.0,  0.0 ]
+    extrinsicRot:    [ 1.0,  0.0,  0.0,
+                       0.0,  1.0,  0.0,
+                       0.0,  0.0,  1.0 ]
+    extrinsicRPY: [ -1.0,  0.0,  0.0,
+                    0.0,  -1.0,  0.0,
+                    0.0,  0.0,  1.0 ]
 
     # LOAM feature threshold
     edgeThreshold: 1.0
     surfThreshold: 0.1
-    edgeFeatureMinValidNum: -1
+    edgeFeatureMinValidNum: 10
     surfFeatureMinValidNum: 100
 
     # Voxel filter parameters
-    odometrySurfLeafSize: 0.4
-    mappingCornerLeafSize: 0.2
-    mappingSurfLeafSize: 0.4
+    odometrySurfLeafSize:  0.4                    # default: 0.4 - outdoor, 0.2 - indoor
+    mappingCornerLeafSize: 0.2                    # default: 0.2 - outdoor, 0.1 - indoor
+    mappingSurfLeafSize:   0.4                    # default: 0.4 - outdoor, 0.2 - indoor
 
     # Robot motion constraint
     z_tolerance: 1000.0       # meters
@@ -62,7 +63,7 @@
 
     # CPU Params
     numberOfCores: 4
-    mappingProcessInterval: 0.05
+    mappingProcessInterval: 0.15
 
     # Surrounding map
     surroundingkeyframeAddingDistThreshold: 1.0
@@ -70,8 +71,9 @@
     surroundingKeyframeDensity: 2.0
     surroundingKeyframeSearchRadius: 50.0
 
-    # Loop closure
+    # Loop closure ... disabled, do that in VINS TODO ----
     loopClosureEnableFlag: False
+    loopClosureFrequency: 1.0                     # Hz, regulate loop closure constraint add frequency
     surroundingKeyframeSize: 25
     historyKeyframeSearchRadius: 20.0
     historyKeyframeSearchTimeDiff: 30.0
