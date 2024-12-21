@@ -120,6 +120,7 @@ public:
     Eigen::Matrix3d extRPY;
     Eigen::Vector3d extTrans;
     Eigen::Quaterniond extQRPY;
+    float imuGravityScale;
 
     // LOAM
     float edgeThreshold;
@@ -256,6 +257,9 @@ public:
         extTrans = Eigen::Map<const Eigen::Matrix<double, -1, -1, Eigen::RowMajor>>(extTransV.data(), 3, 1);
         extQRPY = Eigen::Quaterniond(extRPY);
 
+        declare_parameter("imuGravityScale", 9.8);
+        get_parameter("imuGravityScale", imuGravityScale);
+
         declare_parameter("edgeThreshold", 1.0);
         get_parameter("edgeThreshold", edgeThreshold);
         declare_parameter("surfThreshold", 0.1);
@@ -339,8 +343,9 @@ public:
         imu_out.angular_velocity.z = gyr.z();
         // rotate roll pitch yaw
         Eigen::Vector3d imu_angular_velocity(imu_in.angular_velocity.x,
-                            imu_in.angular_velocity.y,
-                            imu_in.angular_velocity.z);
+                                             imu_in.angular_velocity.y,
+                                             imu_in.angular_velocity.z);
+
         imu_tracker->Advance(stamp2Sec(imu_in.header.stamp));
         imu_tracker->AddImuLinearAccelerationObservation(acc);
         imu_tracker->AddImuAngularVelocityObservation(imu_angular_velocity);
@@ -354,7 +359,7 @@ public:
 
         if (sqrt(q_final.x()*q_final.x() + q_final.y()*q_final.y() + q_final.z()*q_final.z() + q_final.w()*q_final.w()) < 0.1)
         {
-            RCLCPP_ERROR(get_logger(), "Invalid quaternion, please use a 9-axis IMU!");
+            RCLCPP_ERROR(get_logger(), "Invalid IMU data");
             rclcpp::shutdown();
         }
 
@@ -363,9 +368,9 @@ public:
 
     void scaleImuAcceleration(const sensor_msgs::msg::Imu::SharedPtr& imuMsg) const
     {
-        imuMsg->linear_acceleration.x *= imuGravity;
-        imuMsg->linear_acceleration.y *= imuGravity;
-        imuMsg->linear_acceleration.z *= imuGravity;
+        imuMsg->linear_acceleration.x *= imuGravityScale;
+        imuMsg->linear_acceleration.y *= imuGravityScale;
+        imuMsg->linear_acceleration.z *= imuGravityScale;
     }
 };
 

@@ -42,9 +42,11 @@
     extrinsicRot:    [ 1.0,  0.0,  0.0,
                        0.0,  1.0,  0.0,
                        0.0,  0.0,  1.0 ]
-    extrinsicRPY: [ -1.0,  0.0,  0.0,
-                    0.0,  -1.0,  0.0,
+    extrinsicRPY: [ 1.0,  0.0,  0.0,
+                    0.0,  1.0,  0.0,
                     0.0,  0.0,  1.0 ]
+
+    imuGravityScale: -9.8
 
     # LOAM feature threshold
     edgeThreshold: 1.0

@@ -1,0 +1,17 @@
+[31mCMake Error at CMakeLists.txt:37 (find_package):
+  By not providing "Findlivox_ros_driver2.cmake" in CMAKE_MODULE_PATH this
+  project has asked CMake to find a package configuration file provided by
+  "livox_ros_driver2", but CMake did not find one.
+
+  Could not find a package configuration file provided by "livox_ros_driver2"
+  with any of the following names:
+
+    livox_ros_driver2Config.cmake
+    livox_ros_driver2-config.cmake
+
+  Add the installation prefix of "livox_ros_driver2" to CMAKE_PREFIX_PATH or
+  set "livox_ros_driver2_DIR" to a directory containing one of the above
+  files.  If "livox_ros_driver2" provides a separate development package or
+  SDK, be sure it has been installed.
+
+[0m

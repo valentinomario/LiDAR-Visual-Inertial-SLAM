@@ -4,10 +4,11 @@ project(emv_lio2)
 message(STATUS "cloud_messages: " ${cloud_msg_INCLUDE_DIRS})
 
 # CMake flags
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS "-O3 -Wall -g -pthread -w")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g -pthread -w")
+set(CMAKE_CXX_FLAGS "-Wall -pthread")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -Wall -g -pthread")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g -pthread")
 
 
 # Find packages

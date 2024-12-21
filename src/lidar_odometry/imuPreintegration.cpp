@@ -555,8 +555,8 @@ public:
         double y = odometry.pose.pose.position.y;
         double z = odometry.pose.pose.position.z;
 
-        cout << "Integrated IMU odometry: " << endl;
-        cout << "x: " << x << ", y: " << y << ", z: " << z << endl << endl;
+        //cout << "Integrated IMU odometry: " << endl;
+        //cout << "x: " << x << ", y: " << y << ", z: " << z << endl << endl;
         pubImuOdometry->publish(odometry);
     }
 };

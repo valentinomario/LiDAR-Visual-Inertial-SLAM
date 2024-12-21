@@ -1,0 +1,124 @@
+[0.024s] Invoking command in '/home/user/ros2_ws/src/emv-lio2/build/emv_lio2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble PS1=(venv) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /usr/bin/cmake /home/user/ros2_ws/src/emv-lio2 -DCMAKE_INSTALL_PREFIX=/home/user/ros2_ws/src/emv-lio2/install/emv_lio2
+[0.283s] -- The C compiler identification is GNU 11.4.0
+[0.379s] -- The CXX compiler identification is GNU 11.4.0
+[0.392s] -- Detecting C compiler ABI info
+[0.458s] -- Detecting C compiler ABI info - done
+[0.465s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.466s] -- Detecting C compile features
+[0.466s] -- Detecting C compile features - done
+[0.470s] -- Detecting CXX compiler ABI info
+[0.543s] -- Detecting CXX compiler ABI info - done
+[0.555s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.556s] -- Detecting CXX compile features
+[0.556s] -- Detecting CXX compile features - done
+[0.557s] -- cloud_messages: 
+[0.570s] -- Found ament_cmake: 1.3.10 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.710s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[0.825s] -- Found rclcpp: 16.0.10 (/opt/ros/humble/share/rclcpp/cmake)
+[0.888s] -- Found rosidl_generator_c: 3.1.5 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[0.897s] -- Found rosidl_adapter: 3.1.5 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[0.910s] -- Found rosidl_generator_cpp: 3.1.5 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[0.930s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[0.952s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[1.016s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[1.020s] -- Found rmw_fastrtps_cpp: 6.2.7 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[1.126s] -- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")  
+[1.156s] -- Found FastRTPS: /opt/ros/humble/include  
+[1.199s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[1.211s] -- Looking for pthread.h
+[1.276s] -- Looking for pthread.h - found
+[1.276s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[1.340s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+[1.341s] -- Found Threads: TRUE  
+[1.417s] -- Found rclpy: 3.3.14 (/opt/ros/humble/share/rclpy/cmake)
+[1.425s] -- Found tf2: 0.25.8 (/opt/ros/humble/share/tf2/cmake)
+[1.459s] -- Found tf2_ros: 0.25.8 (/opt/ros/humble/share/tf2_ros/cmake)
+[1.618s] -- Found tf2_eigen: 0.25.8 (/opt/ros/humble/share/tf2_eigen/cmake)
+[1.635s] -- Found tf2_geometry_msgs: 0.25.8 (/opt/ros/humble/share/tf2_geometry_msgs/cmake)
+[1.647s] -- Found eigen3_cmake_module: 0.1.1 (/opt/ros/humble/share/eigen3_cmake_module/cmake)
+[1.649s] -- Found Eigen3: TRUE (found version "3.4.0") 
+[1.649s] -- Ensuring Eigen3 include directory is part of orocos-kdl CMake target
+[1.654s] -- Found sensor_msgs: 4.2.4 (/opt/ros/humble/share/sensor_msgs/cmake)
+[1.679s] -- Found visualization_msgs: 4.2.4 (/opt/ros/humble/share/visualization_msgs/cmake)
+[1.707s] -- Found pcl_msgs: 1.0.0 (/opt/ros/humble/share/pcl_msgs/cmake)
+[1.732s] -- Found nav_msgs: 4.2.4 (/opt/ros/humble/share/nav_msgs/cmake)
+[1.758s] -- Found cv_bridge: 3.2.1 (/opt/ros/humble/share/cv_bridge/cmake)
+[1.774s] -- Found pcl_conversions: 2.4.5 (/opt/ros/humble/share/pcl_conversions/cmake)
+[1.792s] -- Checking for module 'eigen3'
+[1.804s] --   Found eigen3, version 3.4.0
+[1.836s] -- Found Eigen: /usr/include/eigen3 (Required is at least version "3.1") 
+[1.837s] -- Eigen found (include: /usr/include/eigen3, version: 3.4.0)
+[1.909s] -- Checking for module 'flann'
+[1.924s] --   Found flann, version 1.9.1
+[1.973s] -- Found FLANN: /usr/lib/x86_64-linux-gnu/libflann_cpp.so  
+[1.973s] -- FLANN found (include: /usr/include, lib: /usr/lib/x86_64-linux-gnu/libflann_cpp.so)
+[3.405s] -- Checking for module 'libusb-1.0'
+[3.416s] --   Found libusb-1.0, version 1.0.25
+[3.444s] -- Found libusb: /usr/lib/x86_64-linux-gnu/libusb-1.0.so  
+[3.445s] -- OpenNI found (version: 1.5.4.0, include: /usr/include/ni, lib: /usr/lib/libOpenNI.so;libusb::libusb)
+[3.489s] -- OpenNI2 found (version: 2.2.0.33, include: /usr/include/openni2, lib: /usr/lib/x86_64-linux-gnu/libOpenNI2.so;libusb::libusb)
+[3.618s] -- Eigen found (include: /usr/include/eigen3, version: 3.4.0)
+[3.622s] -- OpenNI found (version: 1.5.4.0, include: /usr/include/ni, lib: /usr/lib/libOpenNI.so;libusb::libusb)
+[3.627s] -- OpenNI2 found (version: 2.2.0.33, include: /usr/include/openni2, lib: /usr/lib/x86_64-linux-gnu/libOpenNI2.so;libusb::libusb)
+[3.749s] -- Found Qhull version 8.0.2
+[3.872s] -- OpenNI found (version: 1.5.4.0, include: /usr/include/ni, lib: /usr/lib/libOpenNI.so;libusb::libusb)
+[3.992s] -- Found PCL_COMMON: /usr/lib/x86_64-linux-gnu/libpcl_common.so  
+[3.993s] -- Found PCL_KDTREE: /usr/lib/x86_64-linux-gnu/libpcl_kdtree.so  
+[3.994s] -- Found PCL_OCTREE: /usr/lib/x86_64-linux-gnu/libpcl_octree.so  
+[3.994s] -- Found PCL_SEARCH: /usr/lib/x86_64-linux-gnu/libpcl_search.so  
+[3.995s] -- Found PCL_SAMPLE_CONSENSUS: /usr/lib/x86_64-linux-gnu/libpcl_sample_consensus.so  
+[3.996s] -- Found PCL_FILTERS: /usr/lib/x86_64-linux-gnu/libpcl_filters.so  
+[3.996s] -- Found PCL_2D: /usr/include/pcl-1.12  
+[3.997s] -- Found PCL_GEOMETRY: /usr/include/pcl-1.12  
+[3.997s] -- Found PCL_IO: /usr/lib/x86_64-linux-gnu/libpcl_io.so  
+[3.998s] -- Found PCL_FEATURES: /usr/lib/x86_64-linux-gnu/libpcl_features.so  
+[3.999s] -- Found PCL_ML: /usr/lib/x86_64-linux-gnu/libpcl_ml.so  
+[4.001s] -- Found PCL_SEGMENTATION: /usr/lib/x86_64-linux-gnu/libpcl_segmentation.so  
+[4.001s] -- Found PCL_VISUALIZATION: /usr/lib/x86_64-linux-gnu/libpcl_visualization.so  
+[4.002s] -- Found PCL_SURFACE: /usr/lib/x86_64-linux-gnu/libpcl_surface.so  
+[4.003s] -- Found PCL_REGISTRATION: /usr/lib/x86_64-linux-gnu/libpcl_registration.so  
+[4.004s] -- Found PCL_KEYPOINTS: /usr/lib/x86_64-linux-gnu/libpcl_keypoints.so  
+[4.005s] -- Found PCL_TRACKING: /usr/lib/x86_64-linux-gnu/libpcl_tracking.so  
+[4.005s] -- Found PCL_RECOGNITION: /usr/lib/x86_64-linux-gnu/libpcl_recognition.so  
+[4.006s] -- Found PCL_STEREO: /usr/lib/x86_64-linux-gnu/libpcl_stereo.so  
+[4.007s] -- Found PCL_APPS: /usr/lib/x86_64-linux-gnu/libpcl_apps.so  
+[4.008s] -- Found PCL_IN_HAND_SCANNER: /usr/include/pcl-1.12  
+[4.008s] -- Found PCL_MODELER: /usr/include/pcl-1.12  
+[4.009s] -- Found PCL_POINT_CLOUD_EDITOR: /usr/include/pcl-1.12  
+[4.010s] -- Found PCL_OUTOFCORE: /usr/lib/x86_64-linux-gnu/libpcl_outofcore.so  
+[4.011s] -- Found PCL_PEOPLE: /usr/lib/x86_64-linux-gnu/libpcl_people.so  
+[4.022s] -- Found OpenCV: /usr (found version "4.5.4") 
+[4.026s] -- Found installed version of Eigen: /usr/share/eigen3/cmake
+[4.027s] -- Found required Ceres dependency: Eigen version 3.4.0 in /usr/include/eigen3
+[4.033s] -- Found installed version of glog: /usr/lib/x86_64-linux-gnu/cmake/glog
+[4.033s] -- Detected glog version: 0.4.0
+[4.034s] -- Found required Ceres dependency: glog
+[4.035s] -- Found installed version of gflags: /usr/lib/x86_64-linux-gnu/cmake/gflags
+[4.035s] -- Detected gflags version: 2.2.2
+[4.036s] -- Found required Ceres dependency: gflags
+[4.037s] -- Found Ceres version: 1.14.0 installed in: /usr/local with components: [EigenSparse, SparseLinearAlgebraLibrary, LAPACK, SchurSpecializations, OpenMP, Multithreading]
+[4.074s] -- GTSAM include directory:  /usr/lib/cmake/GTSAM/../../../include
+[4.285s] -- Found OpenMP_C: -fopenmp (found version "4.5") 
+[4.360s] -- Found OpenMP_CXX: -fopenmp (found version "4.5") 
+[4.360s] -- Found OpenMP: TRUE (found version "4.5")  
+[4.362s] -- Found cloud_msg: 0.0.0 (/home/user/ros2_ws/install/cloud_msg/share/cloud_msg/cmake)
+[4.394s] [31mCMake Error at CMakeLists.txt:37 (find_package):
+[4.394s]   By not providing "Findlivox_ros_driver2.cmake" in CMAKE_MODULE_PATH this
+[4.394s]   project has asked CMake to find a package configuration file provided by
+[4.394s]   "livox_ros_driver2", but CMake did not find one.
+[4.394s] 
+[4.394s]   Could not find a package configuration file provided by "livox_ros_driver2"
+[4.394s]   with any of the following names:
+[4.394s] 
+[4.394s]     livox_ros_driver2Config.cmake
+[4.394s]     livox_ros_driver2-config.cmake
+[4.394s] 
+[4.395s]   Add the installation prefix of "livox_ros_driver2" to CMAKE_PREFIX_PATH or
+[4.395s]   set "livox_ros_driver2_DIR" to a directory containing one of the above
+[4.395s]   files.  If "livox_ros_driver2" provides a separate development package or
+[4.395s]   SDK, be sure it has been installed.
+[4.395s] 
+[4.395s] [0m
+[4.395s] -- Configuring incomplete, errors occurred!
+[4.395s] See also "/home/user/ros2_ws/src/emv-lio2/build/emv_lio2/CMakeFiles/CMakeOutput.log".
+[4.410s] Invoked command in '/home/user/ros2_ws/src/emv-lio2/build/emv_lio2' returned '1': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble PS1=(venv) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /usr/bin/cmake /home/user/ros2_ws/src/emv-lio2 -DCMAKE_INSTALL_PREFIX=/home/user/ros2_ws/src/emv-lio2/install/emv_lio2

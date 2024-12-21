@@ -23,7 +23,7 @@ ImuTracker::ImuTracker(const double imu_gravity_time_constant,
     : imu_gravity_time_constant_(imu_gravity_time_constant), time_(time),
       last_linear_acceleration_time_(0.),
       orientation_(Eigen::Quaterniond::Identity()),
-      gravity_vector_(Eigen::Vector3d::UnitZ()),
+      gravity_vector_(-Eigen::Vector3d::UnitZ()),
       imu_angular_velocity_(Eigen::Vector3d::Zero())
 {
 }
@@ -54,7 +54,7 @@ void ImuTracker::AddImuLinearAccelerationObservation(
   // Change the 'orientation_' so that it agrees with the current
   // 'gravity_vector_'.
   const Eigen::Quaterniond rotation = Eigen::Quaterniond::FromTwoVectors(
-      gravity_vector_, orientation_.conjugate() * (Eigen::Vector3d::UnitZ()));
+      gravity_vector_, orientation_.conjugate() * (-Eigen::Vector3d::UnitZ()));
   orientation_ = (orientation_ * rotation).normalized();
 }
 
