@@ -42,7 +42,7 @@ def generate_launch_description():
         Node(
             package='emv_lio2',
             executable='emv_lio2_imuPreintegration',
-            # name='emv_lio2_imuPreintegration',
+            name='emv_lio2_imuPreintegration',
             parameters=[parameter_file],
             output='screen'
         ),

@@ -39,6 +39,7 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_eigen/tf2_eigen.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include "livox_ros_driver2/msg/custom_msg.hpp"
 
 #include <vector>
 #include <cmath>
@@ -58,20 +59,11 @@
 #include <thread>
 #include <mutex>
 
-#include "imu_tracker.h"
-
 using namespace std;
 
 typedef pcl::PointXYZI PointType;
 
 enum class SensorType { VELODYNE, OUSTER, LIVOX };
-
-template<typename T>
-double stamp2Sec(const T& stamp)
-{
-    return rclcpp::Time(stamp).seconds();
-}
-
 
 class ParamServer : public rclcpp::Node
 {
@@ -82,6 +74,7 @@ public:
     string pointCloudTopic;
     string imuTopic;
     string odomTopic;
+    string gpsTopic;
 
     //Frames
     string lidarFrame;
@@ -91,20 +84,21 @@ public:
 
     // GPS Settings
     bool useImuHeadingInitialization;
+    bool useGpsElevation;
+    float gpsCovThreshold;
+    float poseCovThreshold;
 
     // Save pcd
     bool savePCD;
     string savePCDDirectory;
 
     // Lidar Sensor Configuration
-    SensorType sensor = SensorType::OUSTER;
-    int VRES;
-    int HRES;
+    SensorType sensor = SensorType::LIVOX;
+    int N_SCAN;
+    int Horizon_SCAN;
     int downsampleRate;
     float lidarMinRange;
     float lidarMaxRange;
-    float fovMinTheta;
-    float fovMaxTheta;
 
     // IMU
     float imuAccNoise;
@@ -120,7 +114,6 @@ public:
     Eigen::Matrix3d extRPY;
     Eigen::Vector3d extTrans;
     Eigen::Quaterniond extQRPY;
-    float imuGravityScale;
 
     // LOAM
     float edgeThreshold;
@@ -133,8 +126,8 @@ public:
     float mappingCornerLeafSize;
     float mappingSurfLeafSize ;
 
-    float z_tolerance;
-    float rotation_tolerance;
+    float z_tollerance;
+    float rotation_tollerance;
 
     // CPU Params
     int numberOfCores;
@@ -169,6 +162,7 @@ public:
         declare_parameter("odomTopic", "lio_sam/odometry/imu");
         get_parameter("odomTopic", odomTopic);
         declare_parameter("gpsTopic", "lio_sam/odometry/gps");
+        get_parameter("gpsTopic", gpsTopic);
 
         declare_parameter("lidarFrame", "laser_data_frame");
         get_parameter("lidarFrame", lidarFrame);
@@ -181,6 +175,12 @@ public:
 
         declare_parameter("useImuHeadingInitialization", false);
         get_parameter("useImuHeadingInitialization", useImuHeadingInitialization);
+        declare_parameter("useGpsElevation", false);
+        get_parameter("useGpsElevation", useGpsElevation);
+        declare_parameter("gpsCovThreshold", 2.0);
+        get_parameter("gpsCovThreshold", gpsCovThreshold);
+        declare_parameter("poseCovThreshold", 25.0);
+        get_parameter("poseCovThreshold", poseCovThreshold);
 
         declare_parameter("savePCD", false);
         get_parameter("savePCD", savePCD);
@@ -210,21 +210,16 @@ public:
             rclcpp::shutdown();
         }
 
-        declare_parameter("VRES", 64);
-        get_parameter("VRES", VRES);
-        declare_parameter("HRES", 512);
-        get_parameter("HRES", HRES);
+        declare_parameter("N_SCAN", 64);
+        get_parameter("N_SCAN", N_SCAN);
+        declare_parameter("Horizon_SCAN", 512);
+        get_parameter("Horizon_SCAN", Horizon_SCAN);
         declare_parameter("downsampleRate", 1);
         get_parameter("downsampleRate", downsampleRate);
         declare_parameter("lidarMinRange", 5.5);
         get_parameter("lidarMinRange", lidarMinRange);
         declare_parameter("lidarMaxRange", 1000.0);
         get_parameter("lidarMaxRange", lidarMaxRange);
-        declare_parameter("fov_min_theta", 5.5);
-        get_parameter("fovMinTheta", fovMinTheta);
-        declare_parameter("fovMaxTheta", 1000.0);
-        get_parameter("fovMaxTheta", fovMaxTheta);
-
 
         declare_parameter("imuAccNoise", 9e-4);
         get_parameter("imuAccNoise", imuAccNoise);
@@ -234,7 +229,7 @@ public:
         get_parameter("imuAccBiasN", imuAccBiasN);
         declare_parameter("imuGyrBiasN", 7e-5);
         get_parameter("imuGyrBiasN", imuGyrBiasN);
-        declare_parameter("imuGravity", 9.81);
+        declare_parameter("imuGravity", 9.80511);
         get_parameter("imuGravity", imuGravity);
         declare_parameter("imuRPYWeight", 0.01);
         get_parameter("imuRPYWeight", imuRPYWeight);
@@ -257,9 +252,6 @@ public:
         extTrans = Eigen::Map<const Eigen::Matrix<double, -1, -1, Eigen::RowMajor>>(extTransV.data(), 3, 1);
         extQRPY = Eigen::Quaterniond(extRPY);
 
-        declare_parameter("imuGravityScale", 9.8);
-        get_parameter("imuGravityScale", imuGravityScale);
-
         declare_parameter("edgeThreshold", 1.0);
         get_parameter("edgeThreshold", edgeThreshold);
         declare_parameter("surfThreshold", 0.1);
@@ -277,9 +269,9 @@ public:
         get_parameter("mappingSurfLeafSize", mappingSurfLeafSize);
 
         declare_parameter("z_tollerance", 1000.0);
-        get_parameter("z_tollerance", z_tolerance);
+        get_parameter("z_tollerance", z_tollerance);
         declare_parameter("rotation_tollerance", 1000.0);
-        get_parameter("rotation_tollerance", rotation_tolerance);
+        get_parameter("rotation_tollerance", rotation_tollerance);
 
         declare_parameter("numberOfCores", 4);
         get_parameter("numberOfCores", numberOfCores);
@@ -317,20 +309,17 @@ public:
         declare_parameter("globalMapVisualizationLeafSize", 1.0);
         get_parameter("globalMapVisualizationLeafSize", globalMapVisualizationLeafSize);
 
-        declare_parameter<int>("paramsCheck", 0);
-        int paramsCheck;
-        get_parameter("paramsCheck", paramsCheck);
-
-        if(paramsCheck != 69) RCLCPP_ERROR(get_logger(), "Error loading parameters from config file");
-
         usleep(100);
     }
 
-    sensor_msgs::msg::Imu imuConverter(const sensor_msgs::msg::Imu& imu_in, std::shared_ptr<ImuTracker> imu_tracker)
+    sensor_msgs::msg::Imu imuConverter(const sensor_msgs::msg::Imu& imu_in)
     {
         sensor_msgs::msg::Imu imu_out = imu_in;
         // rotate acceleration
         Eigen::Vector3d acc(imu_in.linear_acceleration.x, imu_in.linear_acceleration.y, imu_in.linear_acceleration.z);
+
+        acc*=imuGravity;
+
         acc = extRot * acc;
         imu_out.linear_acceleration.x = acc.x();
         imu_out.linear_acceleration.y = acc.y();
@@ -342,16 +331,9 @@ public:
         imu_out.angular_velocity.y = gyr.y();
         imu_out.angular_velocity.z = gyr.z();
         // rotate roll pitch yaw
-        Eigen::Vector3d imu_angular_velocity(imu_in.angular_velocity.x,
-                                             imu_in.angular_velocity.y,
-                                             imu_in.angular_velocity.z);
-
-        imu_tracker->Advance(stamp2Sec(imu_in.header.stamp));
-        imu_tracker->AddImuLinearAccelerationObservation(acc);
-        imu_tracker->AddImuAngularVelocityObservation(imu_angular_velocity);
-
-        Eigen::Quaterniond q_from= imu_tracker->orientation();
-        Eigen::Quaterniond q_final = q_from * extQRPY;
+        Eigen::Quaterniond q_from(imu_in.orientation.w, imu_in.orientation.x, imu_in.orientation.y, imu_in.orientation.z);
+        Eigen::Quaterniond q_final = extQRPY; //q_from * extQRPY;
+        q_final.normalize();
         imu_out.orientation.x = q_final.x();
         imu_out.orientation.y = q_final.y();
         imu_out.orientation.z = q_final.z();
@@ -359,18 +341,11 @@ public:
 
         if (sqrt(q_final.x()*q_final.x() + q_final.y()*q_final.y() + q_final.z()*q_final.z() + q_final.w()*q_final.w()) < 0.1)
         {
-            RCLCPP_ERROR(get_logger(), "Invalid IMU data");
+            RCLCPP_ERROR(get_logger(), "Invalid quaternion, please use a 9-axis IMU!");
             rclcpp::shutdown();
         }
 
         return imu_out;
-    }
-
-    void scaleImuAcceleration(const sensor_msgs::msg::Imu::SharedPtr& imuMsg) const
-    {
-        imuMsg->linear_acceleration.x *= imuGravityScale;
-        imuMsg->linear_acceleration.y *= imuGravityScale;
-        imuMsg->linear_acceleration.z *= imuGravityScale;
     }
 };
 
@@ -384,6 +359,12 @@ sensor_msgs::msg::PointCloud2 publishCloud(rclcpp::Publisher<sensor_msgs::msg::P
     if (thisPub->get_subscription_count() != 0)
         thisPub->publish(tempCloud);
     return tempCloud;
+}
+
+template<typename T>
+double stamp2Sec(const T& stamp)
+{
+    return rclcpp::Time(stamp).seconds();
 }
 
 

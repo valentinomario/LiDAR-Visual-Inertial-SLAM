@@ -1,9 +1,11 @@
 #include "utility.h"
-#include "cloud_msg/msg/cloud_info.hpp"
+#include "emv_lio2/msg/cloud_info.hpp"
+#include "emv_lio2/srv/save_map.hpp"
 #include <gtsam/geometry/Rot3.h>
 #include <gtsam/geometry/Pose3.h>
 #include <gtsam/slam/PriorFactor.h>
 #include <gtsam/slam/BetweenFactor.h>
+#include <gtsam/navigation/GPSFactor.h>
 #include <gtsam/navigation/ImuFactor.h>
 #include <gtsam/navigation/CombinedImuFactor.h>
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
@@ -19,6 +21,7 @@ using namespace gtsam;
 using symbol_shorthand::X; // Pose3 (x,y,z,r,p,y)
 using symbol_shorthand::V; // Vel   (xdot,ydot,zdot)
 using symbol_shorthand::B; // Bias  (ax,ay,az,gx,gy,gz)
+using symbol_shorthand::G; // GPS pose
 
 /*
     * A point cloud type that has 6D pose info ([x,y,z,roll,pitch,yaw] intensity is time stamp)
@@ -69,10 +72,13 @@ public:
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pubCloudRegisteredRaw;
     rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr pubLoopConstraintEdge;
 
-    rclcpp::Subscription<cloud_msg::msg::CloudInfo>::SharedPtr subCloud;
+    rclcpp::Service<emv_lio2::srv::SaveMap>::SharedPtr srvSaveMap;
+    rclcpp::Subscription<emv_lio2::msg::CloudInfo>::SharedPtr subCloud;
+    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr subGPS;
     rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::SharedPtr subLoop;
 
-    cloud_msg::msg::CloudInfo cloudInfo;
+    std::deque<nav_msgs::msg::Odometry> gpsQueue;
+    emv_lio2::msg::CloudInfo cloudInfo;
 
     vector<pcl::PointCloud<PointType>::Ptr> cornerCloudKeyFrames;
     vector<pcl::PointCloud<PointType>::Ptr> surfCloudKeyFrames;
@@ -160,13 +166,76 @@ public:
         pubPath = create_publisher<nav_msgs::msg::Path>("lio_sam/mapping/path", 1);
         br = std::make_unique<tf2_ros::TransformBroadcaster>(this);
 
-        subCloud = create_subscription<cloud_msg::msg::CloudInfo>(
+        subCloud = create_subscription<emv_lio2::msg::CloudInfo>(
             "lio_sam/feature/cloud_info", qos,
             std::bind(&mapOptimization::laserCloudInfoHandler, this, std::placeholders::_1));
+        subGPS = create_subscription<nav_msgs::msg::Odometry>(
+            gpsTopic, 200,
+            std::bind(&mapOptimization::gpsHandler, this, std::placeholders::_1));
         subLoop = create_subscription<std_msgs::msg::Float64MultiArray>(
             "lio_loop/loop_closure_detection", qos,
             std::bind(&mapOptimization::loopInfoHandler, this, std::placeholders::_1));
 
+        auto saveMapService = [this](const std::shared_ptr<rmw_request_id_t> request_header, const std::shared_ptr<emv_lio2::srv::SaveMap::Request> req, std::shared_ptr<emv_lio2::srv::SaveMap::Response> res) -> void {
+            (void)request_header;
+            string saveMapDirectory;
+            cout << "****************************************************" << endl;
+            cout << "Saving map to pcd files ..." << endl;
+            if(req->destination.empty()) saveMapDirectory = std::getenv("HOME") + savePCDDirectory;
+            else saveMapDirectory = std::getenv("HOME") + req->destination;
+            cout << "Save destination: " << saveMapDirectory << endl;
+            // create directory and remove old files;
+            int unused = system((std::string("exec rm -r ") + saveMapDirectory).c_str());
+            unused = system((std::string("mkdir -p ") + saveMapDirectory).c_str());
+            // save key frame transformations
+            pcl::io::savePCDFileBinary(saveMapDirectory + "/trajectory.pcd", *cloudKeyPoses3D);
+            pcl::io::savePCDFileBinary(saveMapDirectory + "/transformations.pcd", *cloudKeyPoses6D);
+            // extract global point cloud map
+            pcl::PointCloud<PointType>::Ptr globalCornerCloud(new pcl::PointCloud<PointType>());
+            pcl::PointCloud<PointType>::Ptr globalCornerCloudDS(new pcl::PointCloud<PointType>());
+            pcl::PointCloud<PointType>::Ptr globalSurfCloud(new pcl::PointCloud<PointType>());
+            pcl::PointCloud<PointType>::Ptr globalSurfCloudDS(new pcl::PointCloud<PointType>());
+            pcl::PointCloud<PointType>::Ptr globalMapCloud(new pcl::PointCloud<PointType>());
+            for (int i = 0; i < (int)cloudKeyPoses3D->size(); i++)
+            {
+                *globalCornerCloud += *transformPointCloud(cornerCloudKeyFrames[i],  &cloudKeyPoses6D->points[i]);
+                *globalSurfCloud   += *transformPointCloud(surfCloudKeyFrames[i],    &cloudKeyPoses6D->points[i]);
+                cout << "\r" << std::flush << "Processing feature cloud " << i << " of " << cloudKeyPoses6D->size() << " ...";
+            }
+            if(req->resolution != 0)
+            {
+               cout << "\n\nSave resolution: " << req->resolution << endl;
+               // down-sample and save corner cloud
+               downSizeFilterCorner.setInputCloud(globalCornerCloud);
+               downSizeFilterCorner.setLeafSize(req->resolution, req->resolution, req->resolution);
+               downSizeFilterCorner.filter(*globalCornerCloudDS);
+               pcl::io::savePCDFileBinary(saveMapDirectory + "/CornerMap.pcd", *globalCornerCloudDS);
+               // down-sample and save surf cloud
+               downSizeFilterSurf.setInputCloud(globalSurfCloud);
+               downSizeFilterSurf.setLeafSize(req->resolution, req->resolution, req->resolution);
+               downSizeFilterSurf.filter(*globalSurfCloudDS);
+               pcl::io::savePCDFileBinary(saveMapDirectory + "/SurfMap.pcd", *globalSurfCloudDS);
+            }
+            else
+            {
+            // save corner cloud
+               pcl::io::savePCDFileBinary(saveMapDirectory + "/CornerMap.pcd", *globalCornerCloud);
+               // save surf cloud
+               pcl::io::savePCDFileBinary(saveMapDirectory + "/SurfMap.pcd", *globalSurfCloud);
+            }
+            // save global point cloud map
+            *globalMapCloud += *globalCornerCloud;
+            *globalMapCloud += *globalSurfCloud;
+            int ret = pcl::io::savePCDFileBinary(saveMapDirectory + "/GlobalMap.pcd", *globalMapCloud);
+            res->success = ret == 0;
+            downSizeFilterCorner.setLeafSize(mappingCornerLeafSize, mappingCornerLeafSize, mappingCornerLeafSize);
+            downSizeFilterSurf.setLeafSize(mappingSurfLeafSize, mappingSurfLeafSize, mappingSurfLeafSize);
+            cout << "****************************************************" << endl;
+            cout << "Saving map to pcd files completed\n" << endl;
+            return;
+        };
+
+        srvSaveMap = create_service<emv_lio2::srv::SaveMap>("lio_sam/save_map", saveMapService);
         pubHistoryKeyFrames = create_publisher<sensor_msgs::msg::PointCloud2>("lio_sam/mapping/icp_loop_closure_history_cloud", 1);
         pubIcpKeyFrames = create_publisher<sensor_msgs::msg::PointCloud2>("lio_sam/mapping/icp_loop_closure_history_cloud", 1);
         pubLoopConstraintEdge = create_publisher<visualization_msgs::msg::MarkerArray>("/lio_sam/mapping/loop_closure_constraints", 1);
@@ -201,12 +270,12 @@ public:
         laserCloudOri.reset(new pcl::PointCloud<PointType>());
         coeffSel.reset(new pcl::PointCloud<PointType>());
 
-        laserCloudOriCornerVec.resize(VRES * HRES);
-        coeffSelCornerVec.resize(VRES * HRES);
-        laserCloudOriCornerFlag.resize(VRES * HRES);
-        laserCloudOriSurfVec.resize(VRES * HRES);
-        coeffSelSurfVec.resize(VRES * HRES);
-        laserCloudOriSurfFlag.resize(VRES * HRES);
+        laserCloudOriCornerVec.resize(N_SCAN * Horizon_SCAN);
+        coeffSelCornerVec.resize(N_SCAN * Horizon_SCAN);
+        laserCloudOriCornerFlag.resize(N_SCAN * Horizon_SCAN);
+        laserCloudOriSurfVec.resize(N_SCAN * Horizon_SCAN);
+        coeffSelSurfVec.resize(N_SCAN * Horizon_SCAN);
+        laserCloudOriSurfFlag.resize(N_SCAN * Horizon_SCAN);
 
         std::fill(laserCloudOriCornerFlag.begin(), laserCloudOriCornerFlag.end(), false);
         std::fill(laserCloudOriSurfFlag.begin(), laserCloudOriSurfFlag.end(), false);
@@ -226,7 +295,7 @@ public:
         matP.setZero();
     }
 
-    void laserCloudInfoHandler(const cloud_msg::msg::CloudInfo::SharedPtr msgIn)
+    void laserCloudInfoHandler(const emv_lio2::msg::CloudInfo::SharedPtr msgIn)
     {
         // extract time stamp
         timeLaserInfoStamp = msgIn->header.stamp;
@@ -262,6 +331,11 @@ public:
         }
     }
 
+    void gpsHandler(const nav_msgs::msg::Odometry::SharedPtr gpsMsg)
+    {
+        gpsQueue.push_back(*gpsMsg);
+    }
+
     void pointAssociateToMap(PointType const * const pi, PointType * const po)
     {
         po->x = transPointAssociateToMap(0,0) * pi->x + transPointAssociateToMap(0,1) * pi->y + transPointAssociateToMap(0,2) * pi->z + transPointAssociateToMap(0,3);
@@ -278,6 +352,25 @@ public:
         cloudOut->resize(cloudSize);
 
         Eigen::Affine3f transCur = pcl::getTransformation(transformIn->x, transformIn->y, transformIn->z, transformIn->roll, transformIn->pitch, transformIn->yaw);
+
+        #pragma omp parallel for num_threads(numberOfCores)
+        for (int i = 0; i < cloudSize; ++i)
+        {
+            const auto &pointFrom = cloudIn->points[i];
+            cloudOut->points[i].x = transCur(0,0) * pointFrom.x + transCur(0,1) * pointFrom.y + transCur(0,2) * pointFrom.z + transCur(0,3);
+            cloudOut->points[i].y = transCur(1,0) * pointFrom.x + transCur(1,1) * pointFrom.y + transCur(1,2) * pointFrom.z + transCur(1,3);
+            cloudOut->points[i].z = transCur(2,0) * pointFrom.x + transCur(2,1) * pointFrom.y + transCur(2,2) * pointFrom.z + transCur(2,3);
+            cloudOut->points[i].intensity = pointFrom.intensity;
+        }
+        return cloudOut;
+    }
+
+    pcl::PointCloud<PointType>::Ptr transformPointCloud(pcl::PointCloud<PointType>::Ptr cloudIn,  Eigen::Affine3f transCur)
+    {
+        pcl::PointCloud<PointType>::Ptr cloudOut(new pcl::PointCloud<PointType>());
+
+        int cloudSize = cloudIn->size();
+        cloudOut->resize(cloudSize);
 
         #pragma omp parallel for num_threads(numberOfCores)
         for (int i = 0; i < cloudSize; ++i)
@@ -736,8 +829,8 @@ public:
         if (cloudInfo.odom_available == true)
         {
             Eigen::Affine3f transBack = pcl::getTransformation(
-                cloudInfo.odom_x, cloudInfo.odom_y, cloudInfo.odom_z,
-                cloudInfo.odom_roll, cloudInfo.odom_pitch, cloudInfo.odom_yaw);
+                cloudInfo.initial_guess_x, cloudInfo.initial_guess_y, cloudInfo.initial_guess_z,
+                cloudInfo.initial_guess_roll, cloudInfo.initial_guess_pitch, cloudInfo.initial_guess_yaw);
             if (lastImuPreTransAvailable == false)
             {
                 lastImuPreTransformation = transBack;
@@ -1218,7 +1311,7 @@ public:
             kdtreeCornerFromMap->setInputCloud(laserCloudCornerFromMapDS);
             kdtreeSurfFromMap->setInputCloud(laserCloudSurfFromMapDS);
 
-            for (int iterCount = 0; iterCount < 30; iterCount++)
+            for (int iterCount = 0; iterCount < 20; iterCount++)
             {
                 laserCloudOri->clear();
                 coeffSel->clear();
@@ -1263,9 +1356,9 @@ public:
             }
         }
 
-        transformTobeMapped[0] = constraintTransformation(transformTobeMapped[0], rotation_tolerance);
-        transformTobeMapped[1] = constraintTransformation(transformTobeMapped[1], rotation_tolerance);
-        transformTobeMapped[5] = constraintTransformation(transformTobeMapped[5], z_tolerance);
+        transformTobeMapped[0] = constraintTransformation(transformTobeMapped[0], rotation_tollerance);
+        transformTobeMapped[1] = constraintTransformation(transformTobeMapped[1], rotation_tollerance);
+        transformTobeMapped[5] = constraintTransformation(transformTobeMapped[5], z_tollerance);
 
         incrementalOdometryAffineBack = trans2Affine3f(transformTobeMapped);
     }
@@ -1323,6 +1416,85 @@ public:
         }
     }
 
+    void addGPSFactor()
+    {
+        if (gpsQueue.empty())
+            return;
+
+        // wait for system initialized and settles down
+        if (cloudKeyPoses3D->points.empty())
+            return;
+        else
+        {
+            if (pointDistance(cloudKeyPoses3D->front(), cloudKeyPoses3D->back()) < 5.0)
+                return;
+        }
+
+        // pose covariance small, no need to correct
+        if (poseCovariance(3,3) < poseCovThreshold && poseCovariance(4,4) < poseCovThreshold)
+            return;
+
+        // last gps position
+        static PointType lastGPSPoint;
+
+        while (!gpsQueue.empty())
+        {
+            if (stamp2Sec(gpsQueue.front().header.stamp) < timeLaserInfoCur - 0.2)
+            {
+                // message too old
+                gpsQueue.pop_front();
+            }
+            else if (stamp2Sec(gpsQueue.front().header.stamp) > timeLaserInfoCur + 0.2)
+            {
+                // message too new
+                break;
+            }
+            else
+            {
+                nav_msgs::msg::Odometry thisGPS = gpsQueue.front();
+                gpsQueue.pop_front();
+
+                // GPS too noisy, skip
+                float noise_x = thisGPS.pose.covariance[0];
+                float noise_y = thisGPS.pose.covariance[7];
+                float noise_z = thisGPS.pose.covariance[14];
+                if (noise_x > gpsCovThreshold || noise_y > gpsCovThreshold)
+                    continue;
+                float gps_x = thisGPS.pose.pose.position.x;
+                float gps_y = thisGPS.pose.pose.position.y;
+                float gps_z = thisGPS.pose.pose.position.z;
+                if (!useGpsElevation)
+                {
+                    gps_z = transformTobeMapped[5];
+                    noise_z = 0.01;
+                }
+
+                // GPS not properly initialized (0,0,0)
+                if (abs(gps_x) < 1e-6 && abs(gps_y) < 1e-6)
+                    continue;
+
+                // Add GPS every a few meters
+                PointType curGPSPoint;
+                curGPSPoint.x = gps_x;
+                curGPSPoint.y = gps_y;
+                curGPSPoint.z = gps_z;
+                if (pointDistance(curGPSPoint, lastGPSPoint) < 5.0)
+                    continue;
+                else
+                    lastGPSPoint = curGPSPoint;
+
+                gtsam::Vector Vector3(3);
+                Vector3 << max(noise_x, 1.0f), max(noise_y, 1.0f), max(noise_z, 1.0f);
+                noiseModel::Diagonal::shared_ptr gps_noise = noiseModel::Diagonal::Variances(Vector3);
+                gtsam::GPSFactor gps_factor(cloudKeyPoses3D->size(), gtsam::Point3(gps_x, gps_y, gps_z), gps_noise);
+                gtSAMgraph.add(gps_factor);
+
+                aLoopIsClosed = true;
+                break;
+            }
+        }
+    }
+
     void addLoopFactor()
     {
         if (loopIndexQueue.empty())
@@ -1350,6 +1522,9 @@ public:
 
         // odom factor
         addOdomFactor();
+
+        // gps factor
+        addGPSFactor();
 
         // loop factor
         addLoopFactor();
@@ -1507,7 +1682,7 @@ public:
         // Publish odometry for ROS (incremental)
         static bool lastIncreOdomPubFlag = false;
         static nav_msgs::msg::Odometry laserOdomIncremental; // incremental odometry msg
-        static Eigen::Affine3f increOdomAffine; //  incremental odometry in affine
+        static Eigen::Affine3f increOdomAffine; // incremental odometry in affine
         if (lastIncreOdomPubFlag == false)
         {
             lastIncreOdomPubFlag = true;
