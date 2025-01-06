@@ -512,6 +512,21 @@ class IMUPreintegration : public ParamServer {
         odometry.twist.twist.angular.x = thisImu.angular_velocity.x + prevBiasOdom.gyroscope().x();
         odometry.twist.twist.angular.y = thisImu.angular_velocity.y + prevBiasOdom.gyroscope().y();
         odometry.twist.twist.angular.z = thisImu.angular_velocity.z + prevBiasOdom.gyroscope().z();
+
+        // Debug
+        // double x = odometry.pose.pose.position.x;
+        // double y = odometry.pose.pose.position.y;
+        // double z = odometry.pose.pose.position.z;
+        // cout << "Integrated IMU odometry: " << endl;
+        // cout << "x: " << x << ", y: " << y << ", z: " << z << endl << endl;
+
+        // double imuRoll, imuPitch, imuYaw;
+        // tf2::Quaternion orientation;
+        // tf2::fromMsg(thisImu.orientation, orientation);
+        // tf2::Matrix3x3(orientation).getRPY(imuRoll, imuPitch, imuYaw);
+        // cout << "Roll pitch yaw: " << endl;
+        // cout << "roll: " << imuRoll << ", pitch: " << imuPitch << ", yaw: " << imuYaw << endl << endl;
+
         pubImuOdometry->publish(odometry);
     }
 };
