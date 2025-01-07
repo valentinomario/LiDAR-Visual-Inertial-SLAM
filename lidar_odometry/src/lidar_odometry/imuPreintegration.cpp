@@ -195,6 +195,7 @@ class IMUPreintegration : public ParamServer {
     const double delta_t = 0;
 
     int key = 1;
+    int imuPreintegrationResetId = 0;
 
     gtsam::Pose3 imu2Lidar =
         gtsam::Pose3(gtsam::Rot3(1, 0, 0, 0), gtsam::Point3(-extTrans.x(), -extTrans.y(), -extTrans.z()));
@@ -283,9 +284,18 @@ class IMUPreintegration : public ParamServer {
         float r_y = odomMsg->pose.pose.orientation.y;
         float r_z = odomMsg->pose.pose.orientation.z;
         float r_w = odomMsg->pose.pose.orientation.w;
-        bool degenerate = (int)odomMsg->pose.covariance[0] == 1 ? true : false;
+        // bool degenerate = (int)odomMsg->pose.covariance[0] == 1 ? true : false;
+        int currentResetId = round(odomMsg->pose.covariance[0]);
         gtsam::Pose3 lidarPose =
             gtsam::Pose3(gtsam::Rot3::Quaternion(r_w, r_x, r_y, r_z), gtsam::Point3(p_x, p_y, p_z));
+
+        // correction pose jumped, reset imu pre-integration
+        if (currentResetId != imuPreintegrationResetId)
+        {
+            resetParams();
+            imuPreintegrationResetId = currentResetId;
+            return;
+        }
 
         // 0. initialize system
         if (systemInitialized == false) {
@@ -390,7 +400,7 @@ class IMUPreintegration : public ParamServer {
             gtsam::noiseModel::Diagonal::Sigmas(sqrt(imuIntegratorOpt_->deltaTij()) * noiseModelBetweenBias)));
         // add pose factor
         gtsam::Pose3 curPose = lidarPose.compose(lidar2Imu);
-        gtsam::PriorFactor<gtsam::Pose3> pose_factor(X(key), curPose, degenerate ? correctionNoise2 : correctionNoise);
+        gtsam::PriorFactor<gtsam::Pose3> pose_factor(X(key), curPose, correctionNoise);
         graphFactors.add(pose_factor);
         // insert predicted values
         gtsam::NavState propState_ = imuIntegratorOpt_->predict(prevState_, prevBias_);
@@ -513,6 +523,15 @@ class IMUPreintegration : public ParamServer {
         odometry.twist.twist.angular.y = thisImu.angular_velocity.y + prevBiasOdom.gyroscope().y();
         odometry.twist.twist.angular.z = thisImu.angular_velocity.z + prevBiasOdom.gyroscope().z();
 
+        // information for VINS initialization
+        odometry.pose.covariance[0] = double(imuPreintegrationResetId);
+        odometry.pose.covariance[1] = prevBiasOdom.accelerometer().x();
+        odometry.pose.covariance[2] = prevBiasOdom.accelerometer().y();
+        odometry.pose.covariance[3] = prevBiasOdom.accelerometer().z();
+        odometry.pose.covariance[4] = prevBiasOdom.gyroscope().x();
+        odometry.pose.covariance[5] = prevBiasOdom.gyroscope().y();
+        odometry.pose.covariance[6] = prevBiasOdom.gyroscope().z();
+        odometry.pose.covariance[7] = imuGravity;
         // Debug
         // double x = odometry.pose.pose.position.x;
         // double y = odometry.pose.pose.position.y;
