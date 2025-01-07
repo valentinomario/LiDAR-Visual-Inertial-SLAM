@@ -173,7 +173,7 @@ public:
             gpsTopic, 200,
             std::bind(&mapOptimization::gpsHandler, this, std::placeholders::_1));
         subLoop = create_subscription<std_msgs::msg::Float64MultiArray>(
-            "lio_loop/loop_closure_detection", qos,
+            "/vins/loop/match_frame", qos,
             std::bind(&mapOptimization::loopInfoHandler, this, std::placeholders::_1));
 
         auto saveMapService = [this](const std::shared_ptr<rmw_request_id_t> request_header, const std::shared_ptr<emv_lio2::srv::SaveMap::Request> req, std::shared_ptr<emv_lio2::srv::SaveMap::Response> res) -> void {
@@ -823,30 +823,41 @@ public:
             return;
         }
 
-        // use imu pre-integration estimation for pose guess
-        static bool lastImuPreTransAvailable = false;
-        static Eigen::Affine3f lastImuPreTransformation;
-        if (cloudInfo.odom_available == true)
+        // use VINS odometry estimation for pose guess
+        static int odom_reset_id = 0;
+        static bool lastVinsTransAvailable = false;
+        static Eigen::Affine3f lastVinsTransformation;
+        if (cloudInfo.odom_available == true && cloudInfo.odom_reset_id == odom_reset_id)
         {
-            Eigen::Affine3f transBack = pcl::getTransformation(
-                cloudInfo.initial_guess_x, cloudInfo.initial_guess_y, cloudInfo.initial_guess_z,
-                cloudInfo.initial_guess_roll, cloudInfo.initial_guess_pitch, cloudInfo.initial_guess_yaw);
-            if (lastImuPreTransAvailable == false)
+            // Eigen::Affine3f transBack = pcl::getTransformation(
+            //     cloudInfo.initial_guess_x, cloudInfo.initial_guess_y, cloudInfo.initial_guess_z,
+            //     cloudInfo.initial_guess_roll, cloudInfo.initial_guess_pitch, cloudInfo.initial_guess_yaw);
+
+            if (lastVinsTransAvailable == false)
             {
-                lastImuPreTransformation = transBack;
-                lastImuPreTransAvailable = true;
+                lastVinsTransformation = pcl::getTransformation(
+                    cloudInfo.initial_guess_x, cloudInfo.initial_guess_y, cloudInfo.initial_guess_z,
+                   cloudInfo.initial_guess_roll, cloudInfo.initial_guess_pitch, cloudInfo.initial_guess_yaw);
+                lastVinsTransAvailable = true;
             } else {
-                Eigen::Affine3f transIncre = lastImuPreTransformation.inverse() * transBack;
+                Eigen::Affine3f transBack = pcl::getTransformation(cloudInfo.initial_guess_x, cloudInfo.initial_guess_y, cloudInfo.initial_guess_z,
+                                                                cloudInfo.initial_guess_roll, cloudInfo.initial_guess_pitch, cloudInfo.initial_guess_yaw);
+                Eigen::Affine3f transIncre = lastVinsTransformation.inverse() * transBack;
                 Eigen::Affine3f transTobe = trans2Affine3f(transformTobeMapped);
                 Eigen::Affine3f transFinal = transTobe * transIncre;
                 pcl::getTranslationAndEulerAngles(transFinal, transformTobeMapped[3], transformTobeMapped[4], transformTobeMapped[5],
                                                               transformTobeMapped[0], transformTobeMapped[1], transformTobeMapped[2]);
 
-                lastImuPreTransformation = transBack;
+                lastVinsTransformation = pcl::getTransformation(cloudInfo.initial_guess_x, cloudInfo.initial_guess_y, cloudInfo.initial_guess_z,
+                                                                cloudInfo.initial_guess_roll, cloudInfo.initial_guess_pitch, cloudInfo.initial_guess_yaw);
 
                 lastImuTransformation = pcl::getTransformation(0, 0, 0, cloudInfo.imu_roll_init, cloudInfo.imu_pitch_init, cloudInfo.imu_yaw_init); // save imu before return;
                 return;
             }
+        } else {
+            // ROS_WARN("VINS failure detected.");
+            lastVinsTransAvailable = false;
+            odom_reset_id = cloudInfo.odom_reset_id;
         }
 
         // use imu incremental estimation for pose guess (only rotation)

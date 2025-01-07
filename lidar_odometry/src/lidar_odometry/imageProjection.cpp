@@ -127,7 +127,7 @@ public:
             std::bind(&ImageProjection::imuHandler, this, std::placeholders::_1),
             imuOpt);
         subOdom = create_subscription<nav_msgs::msg::Odometry>(
-            odomTopic + "_incremental", qos_imu,
+            "/vins/odometry/imu_propagate_ros", qos_imu,    // Now we subscribe to VINS odometry
             std::bind(&ImageProjection::odometryHandler, this, std::placeholders::_1),
             odomOpt);
         subLaserCloud = create_subscription<livox_ros_driver2::msg::CustomMsg>(
@@ -453,6 +453,7 @@ public:
         cloudInfo.initial_guess_roll = roll;
         cloudInfo.initial_guess_pitch = pitch;
         cloudInfo.initial_guess_yaw = yaw;
+        cloudInfo.odom_reset_id = (int)round(startOdomMsg.pose.covariance[0]);
 
         cloudInfo.odom_available = true;
 

@@ -11,7 +11,7 @@ def generate_launch_description():
     share_dir = get_package_share_directory('emv_lio2')
     parameter_file = LaunchConfiguration('params_file')
     xacro_path = os.path.join(share_dir, 'launch', 'include','config', 'robot.urdf.xacro')
-    # rviz_config_file = os.path.join(share_dir, 'launch', 'include', 'config', 'rviz.rviz')
+    rviz_config_file = os.path.join(share_dir, 'launch', 'include', 'config', 'rviz.rviz')
 
     params_declare = DeclareLaunchArgument(
         'params_file',
@@ -67,11 +67,11 @@ def generate_launch_description():
             parameters=[parameter_file],
             output='screen'
         ),
-        # Node(
-        #     package='rviz2',
-        #     executable='rviz2',
-        #     name='rviz2',
-        #     arguments=['-d', rviz_config_file],
-        #     output='screen'
-        # )
+        Node(
+            package='rviz2',
+            executable='rviz2',
+            name='rviz2',
+            arguments=['-d', rviz_config_file],
+            output='screen'
+        )
     ])

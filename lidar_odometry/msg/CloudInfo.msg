@@ -23,6 +23,9 @@ float32 initial_guess_roll
 float32 initial_guess_pitch
 float32 initial_guess_yaw
 
+# Odometry reset ID
+int64 odom_reset_id
+
 # Point cloud messages
 sensor_msgs/PointCloud2 cloud_deskewed  # original cloud deskewed
 sensor_msgs/PointCloud2 cloud_corner    # extracted corner feature
