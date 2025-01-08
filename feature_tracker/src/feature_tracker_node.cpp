@@ -1,5 +1,4 @@
 #include "feature_tracker.h"
-#include "livox_ros_driver2/msg/custom_msg.hpp"
 
 #define SHOW_UNDISTORTION 0
 
@@ -226,6 +225,7 @@ void img_callback(const sensor_msgs::msg::Image::SharedPtr img_msg)
     // RCUTILS_LOG_INFO("whole feature tracker processing costs: %fms", t_r.toc());
 }
 
+/* TODO: remove, we don't use the cloud coming from the lidar here but from a LIO node
 void moveFromCustomMsg(const livox_ros_driver2::msg::CustomMsg::SharedPtr& laserCloudMsg, pcl::PointCloud<PointType>& outCloud )
 {
     outCloud.clear();
@@ -248,8 +248,8 @@ void moveFromCustomMsg(const livox_ros_driver2::msg::CustomMsg::SharedPtr& laser
         outCloud.push_back(point);
     }
 }
-
-void lidar_callback(const livox_ros_driver2::msg::CustomMsg::SharedPtr laser_msg)
+*/
+void lidar_callback(const sensor_msgs::msg::PointCloud2::SharedPtr laser_msg)
 {
     static int lidar_count = -1;
     if (++lidar_count % (LIDAR_SKIP+1) != 0)
@@ -257,7 +257,12 @@ void lidar_callback(const livox_ros_driver2::msg::CustomMsg::SharedPtr laser_msg
 
     // 0. listen to transform
     try{
-        tf2::fromMsg(tfBuffer->lookupTransform("vins_world", "vins_body_ros", rclcpp::Time(0)), tfTransform);
+        tf2::fromMsg(
+            tfBuffer->lookupTransform(
+                "vins_world",
+                "vins_body_ros",
+                rclcpp::Time(0), rclcpp::Duration::from_seconds(0.01)),
+            tfTransform);
 
         // listener.waitForTransform("vins_world", "vins_body_ros", laser_msg->header.stamp, ros::Duration(0.01));
         // listener.lookupTransform("vins_world", "vins_body_ros", laser_msg->header.stamp, tfTransform);
@@ -278,8 +283,8 @@ void lidar_callback(const livox_ros_driver2::msg::CustomMsg::SharedPtr laser_msg
     // 1. convert laser cloud message to pcl
     pcl::PointCloud<PointType>::Ptr laser_cloud_in(new pcl::PointCloud<PointType>());
 
-    //pcl::fromROSMsg(*laser_msg, *laser_cloud_in);
-    moveFromCustomMsg(laser_msg,*laser_cloud_in);
+    pcl::fromROSMsg(*laser_msg, *laser_cloud_in);
+    // moveFromCustomMsg(laser_msg,*laser_cloud_in);
 
     // 2. downsample new cloud (save memory)
     pcl::PointCloud<PointType>::Ptr laser_cloud_in_ds(new pcl::PointCloud<PointType>());
@@ -339,6 +344,7 @@ void lidar_callback(const livox_ros_driver2::msg::CustomMsg::SharedPtr laser_msg
     downSizeFilter.setInputCloud(depthCloud);
     downSizeFilter.filter(*depthCloudDS);
     *depthCloud = *depthCloudDS;
+    cout<<"Lidar cloud size: "<<*depthCloud<<endl;
 }
 
 int main(int argc, char **argv)
@@ -371,7 +377,7 @@ int main(int argc, char **argv)
     tfBuffer = std::make_shared<tf2_ros::Buffer>(n->get_clock());
     listener = std::make_shared<tf2_ros::TransformListener>(*tfBuffer);
     auto sub_img = n->create_subscription<sensor_msgs::msg::Image>(IMAGE_TOPIC, rclcpp::QoS(rclcpp::KeepLast(100)), img_callback);
-    auto sub_lidar = n->create_subscription<livox_ros_driver2::msg::CustomMsg>(POINT_CLOUD_TOPIC, rclcpp::QoS(rclcpp::KeepLast(100)), lidar_callback);
+    auto sub_lidar = n->create_subscription<sensor_msgs::msg::PointCloud2>(POINT_CLOUD_TOPIC, rclcpp::QoS(rclcpp::KeepLast(100)), lidar_callback);
 
     pub_feature = n->create_publisher<sensor_msgs::msg::PointCloud>( + "/vins/feature/feature", 1000);
     pub_match = n->create_publisher<sensor_msgs::msg::Image>(PROJECT_NAME + "/vins/feature/feature_img",1000);

@@ -87,7 +87,12 @@ void readParameters(rclcpp::Node::SharedPtr &n)
 
     FISHEYE = fsSettings["fisheye"];
     if (FISHEYE == 1)
-        FISHEYE_MASK = VINS_FOLDER_PATH + "config/fisheye_mask.jpg";
+    {
+        std::string mask_name;
+        fsSettings["fisheye_mask"] >> mask_name;
+        FISHEYE_MASK = VINS_FOLDER_PATH + mask_name;
+        RCLCPP_INFO(n->get_logger(), "FISHEYE mask: %s", mask_name.c_str());
+    }
     CAM_NAMES.push_back(config_file);
 
     WINDOW_SIZE = 20;

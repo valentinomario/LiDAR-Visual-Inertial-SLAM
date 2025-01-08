@@ -33,18 +33,18 @@ include_directories(
   ${EIGEN3_INCLUDE_DIR}
 )
 
-add_executable(feature_tracker
+add_executable(feature_tracker_exec
     src/feature_tracker_node.cpp
     src/parameters.cpp
     src/feature_tracker.cpp
     )
 
-ament_target_dependencies(feature_tracker rclcpp rcpputils std_msgs sensor_msgs geometry_msgs cv_bridge camera_model image_transport PCL pcl_conversions tf2 tf2_ros tf2_geometry_msgs nav_msgs OpenCV livox_ros_driver2)
-target_link_libraries(feature_tracker ${OpenCV_LIBS})
+ament_target_dependencies(feature_tracker_exec rclcpp rcpputils std_msgs sensor_msgs geometry_msgs cv_bridge camera_model image_transport PCL pcl_conversions tf2 tf2_ros tf2_geometry_msgs nav_msgs OpenCV livox_ros_driver2)
+target_link_libraries(feature_tracker_exec ${OpenCV_LIBS})
 
 # Install nodes
 install(
-  TARGETS feature_tracker
+  TARGETS feature_tracker_exec
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -93,9 +93,9 @@ public:
     n(n_in)
     {
         // messages for RVIZ visualization
-        pub_depth_feature = n->create_publisher<sensor_msgs::msg::PointCloud2>(PROJECT_NAME + "/vins/depth/depth_feature", 5);
-        pub_depth_image =   n->create_publisher<sensor_msgs::msg::Image>      (PROJECT_NAME + "/vins/depth/depth_image",   5);
-        pub_depth_cloud =   n->create_publisher<sensor_msgs::msg::PointCloud2>(PROJECT_NAME + "/vins/depth/depth_cloud",   5);
+        pub_depth_feature = n->create_publisher<sensor_msgs::msg::PointCloud2>("/vins/depth/depth_feature", 5);
+        pub_depth_image =   n->create_publisher<sensor_msgs::msg::Image>      ("/vins/depth/depth_image",   5);
+        pub_depth_cloud =   n->create_publisher<sensor_msgs::msg::PointCloud2>("/vins/depth/depth_cloud",   5);
 
         pointsArray.resize(num_bins);
         for (int i = 0; i < num_bins; ++i)
@@ -284,6 +284,7 @@ public:
         // visualization project points on image for visualization (it's slow!)
         if (pub_depth_image->get_subscription_count() != 0)
         {
+            RCLCPP_INFO(n->get_logger(), "Publishing depth image!");
             vector<cv::Point2f> points_2d;
             vector<float> points_distance;
 
