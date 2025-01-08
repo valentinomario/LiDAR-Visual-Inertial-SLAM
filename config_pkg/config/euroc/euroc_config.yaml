@@ -1,9 +1,13 @@
 %YAML:1.0
-
 #common parameters
+project_name: "emv_lio2"
+point_cloud_topic: "livox/lidar"
 imu_topic: "/imu0"
 image_topic: "/cam0/image_raw"
 output_path: "/home/db/output/"
+
+use_lidar: 1
+lidar_skip: 3
 
 #camera calibration 
 model_type: PINHOLE
@@ -40,6 +44,14 @@ extrinsicTranslation: !!opencv-matrix
    cols: 1
    dt: d
    data: [-0.0216401454975,-0.064676986768, 0.00981073058949]
+
+#Extrinsic parameters lidar to camera
+lidar_to_cam_tx: 0.05
+lidar_to_cam_ty: -0.07
+lidar_to_cam_tz: -0.07
+lidar_to_cam_rx: 0.0
+lidar_to_cam_ry: 0.0
+lidar_to_cam_rz: -0.04
 
 #feature traker paprameters
 max_cnt: 150            # max feature number in feature tracking

@@ -17,6 +17,13 @@
   <depend>cv_bridge</depend>
   <depend>camera_model</depend>
   <depend>image_transport</depend>
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>PCL</depend>
+  <depend>pcl_msgs</depend>
+  <depend>pcl_conversions</depend>
+  <depend>nav_msgs</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
