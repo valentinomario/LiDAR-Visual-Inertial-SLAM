@@ -8,12 +8,15 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/eigen.hpp>
 #include <fstream>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 
 const double FOCAL_LENGTH = 460.0;
 const int WINDOW_SIZE = 10;
 const int NUM_OF_CAM = 1;
 const int NUM_OF_F = 1000;
 //#define UNIT_SPHERE_ERROR
+
+extern std::string PROJECT_NAME;
 
 extern double INIT_DEPTH;
 extern double MIN_PARALLAX;
@@ -31,7 +34,7 @@ extern double BIAS_GYR_THRESHOLD;
 extern double SOLVER_TIME;
 extern int NUM_ITERATIONS;
 extern std::string EX_CALIB_RESULT_PATH;
-extern std::string VINS_RESULT_PATH;
+// extern std::string VINS_RESULT_PATH;
 extern std::string IMU_TOPIC;
 extern double TD;
 extern double TR;
@@ -39,6 +42,8 @@ extern int ESTIMATE_TD;
 extern int ROLLING_SHUTTER;
 extern double ROW, COL;
 
+extern int USE_LIDAR;
+extern int ALIGN_CAMERA_LIDAR_COORDINATE;
 
 void readParameters(rclcpp::Node::SharedPtr n);
 

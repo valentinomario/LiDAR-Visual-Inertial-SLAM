@@ -1,9 +1,11 @@
 cmake_minimum_required(VERSION 3.5)
 project(vins_estimator)
 
-set(CMAKE_BUILD_TYPE "Release")
+set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_STANDARD 14)
 add_compile_options(-Wextra -Wpedantic)
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -Wall -g -pthread")
+
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -15,6 +17,7 @@ find_package(visualization_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(camera_model REQUIRED)
 find_package(image_transport REQUIRED)
@@ -33,7 +36,7 @@ include_directories(
   ${EIGEN3_INCLUDE_DIR}
 )
 
-add_executable(vins_estimator
+add_executable(vins_estimator_exec
     src/estimator_node.cpp
     src/parameters.cpp
     src/estimator.cpp
@@ -51,13 +54,13 @@ add_executable(vins_estimator
     src/initial/initial_ex_rotation.cpp
     )
 
-ament_target_dependencies(vins_estimator rclcpp rcpputils std_msgs sensor_msgs visualization_msgs geometry_msgs nav_msgs tf2 tf2_ros cv_bridge camera_model image_transport)
+ament_target_dependencies(vins_estimator_exec rclcpp rcpputils std_msgs sensor_msgs visualization_msgs geometry_msgs nav_msgs tf2 tf2_ros tf2_geometry_msgs cv_bridge camera_model image_transport)
 
-target_link_libraries(vins_estimator ${OpenCV_LIBS} ${CERES_LIBRARIES}) 
+target_link_libraries(vins_estimator_exec ${OpenCV_LIBS} ${CERES_LIBRARIES})
 
 # Install nodes
 install(
-  TARGETS vins_estimator
+  TARGETS vins_estimator_exec
   DESTINATION lib/${PROJECT_NAME}
 )
 

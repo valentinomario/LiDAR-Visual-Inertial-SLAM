@@ -15,6 +15,8 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Transform.h>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
 #include "CameraPoseVisualization.h"
 #include <eigen3/Eigen/Dense>
 #include "../estimator.h"
@@ -34,7 +36,9 @@ extern nav_msgs::msg::Path path;
 
 void registerPub(rclcpp::Node::SharedPtr n);
 
-void pubLatestOdometry(const Eigen::Vector3d &P, const Eigen::Quaterniond &Q, const Eigen::Vector3d &V, const std_msgs::msg::Header &header);
+// tf2::Transform transformConversion(const tf2::Stamped<tf2::Transform>& t);
+
+void pubLatestOdometry(const Eigen::Vector3d &P, const Eigen::Quaterniond &Q, const Eigen::Vector3d &V, const std_msgs::msg::Header &header, const int &failureId);
 
 void printStatistics(const Estimator &estimator, double t);
 

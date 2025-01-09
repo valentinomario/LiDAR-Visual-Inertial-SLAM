@@ -2,7 +2,7 @@
 
 Estimator::Estimator(): f_manager{Rs}
 {
-    RCUTILS_LOG_INFO("init begins");
+    failureCount = -1;
     clearState();
 }
 
@@ -21,6 +21,8 @@ void Estimator::setParameter()
 
 void Estimator::clearState()
 {
+    ++failureCount;
+
     for (int i = 0; i < WINDOW_SIZE + 1; i++)
     {
         Rs[i].setIdentity();
@@ -75,10 +77,6 @@ void Estimator::clearState()
     f_manager.clearState();
 
     failure_occur = 0;
-    relocalization_info = 0;
-
-    drift_correct_r = Matrix3d::Identity();
-    drift_correct_t = Vector3d::Zero();
 }
 
 void Estimator::processIMU(double dt, const Vector3d &linear_acceleration, const Vector3d &angular_velocity)
@@ -97,8 +95,8 @@ void Estimator::processIMU(double dt, const Vector3d &linear_acceleration, const
     if (frame_count != 0)
     {
         pre_integrations[frame_count]->push_back(dt, linear_acceleration, angular_velocity);
-        //if(solver_flag != NON_LINEAR)
-            tmp_pre_integration->push_back(dt, linear_acceleration, angular_velocity);
+
+        tmp_pre_integration->push_back(dt, linear_acceleration, angular_velocity);
 
         dt_buf[frame_count].push_back(dt);
         linear_acceleration_buf[frame_count].push_back(linear_acceleration);
@@ -117,22 +115,21 @@ void Estimator::processIMU(double dt, const Vector3d &linear_acceleration, const
     gyr_0 = angular_velocity;
 }
 
-void Estimator::processImage(const map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>> &image, const std_msgs::msg::Header &header)
+void Estimator::processImage(const map<int, vector<pair<int, Eigen::Matrix<double, 8, 1>>>> &image,
+                             const vector<float> &lidar_initialization_info,
+                             const std_msgs::msg::Header &header)
 {
-    RCUTILS_LOG_DEBUG("new image coming ------------------------------------------");
-    RCUTILS_LOG_DEBUG("Adding feature points %lu", image.size());
     if (f_manager.addFeatureCheckParallax(frame_count, image, td))
         marginalization_flag = MARGIN_OLD;
     else
         marginalization_flag = MARGIN_SECOND_NEW;
 
-    RCUTILS_LOG_DEBUG("this frame is--------------------%s", marginalization_flag ? "reject" : "accept");
-    RCUTILS_LOG_DEBUG("%s", marginalization_flag ? "Non-keyframe" : "Keyframe");
-    RCUTILS_LOG_DEBUG("Solving %d", frame_count);
-    RCUTILS_LOG_DEBUG("number of feature: %d", f_manager.getFeatureCount());
+    if (solver_flag == INITIAL && lidar_initialization_info[0] >= 0)
+        marginalization_flag = MARGIN_OLD;
+
     Headers[frame_count] = header;
 
-    ImageFrame imageframe(image, header.stamp.sec + header.stamp.nanosec*(1e-9));
+    ImageFrame imageframe(image, lidar_initialization_info, header.stamp.sec + header.stamp.nanosec*(1e-9));
     imageframe.pre_integration = tmp_pre_integration;
     all_image_frame.insert(make_pair(header.stamp.sec + header.stamp.nanosec*(1e-9), imageframe));
     tmp_pre_integration = new IntegrationBase{acc_0, gyr_0, Bas[frame_count], Bgs[frame_count]};
@@ -186,10 +183,7 @@ void Estimator::processImage(const map<int, vector<pair<int, Eigen::Matrix<doubl
     }
     else
     {
-        TicToc t_solve;
         solveOdometry();
-
-        RCUTILS_LOG_DEBUG("solver costs: %fms", t_solve.toc());
 
         if (failureDetection())
         {
@@ -201,11 +195,10 @@ void Estimator::processImage(const map<int, vector<pair<int, Eigen::Matrix<doubl
             return;
         }
 
-        TicToc t_margin;
         slideWindow();
 
         f_manager.removeFailures();
-        RCUTILS_LOG_DEBUG("marginalization costs: %fms", t_margin.toc());
+
         // prepare output of VINS
         key_poses.clear();
         for (int i = 0; i <= WINDOW_SIZE; i++)
@@ -219,7 +212,64 @@ void Estimator::processImage(const map<int, vector<pair<int, Eigen::Matrix<doubl
 }
 bool Estimator::initialStructure()
 {
-    TicToc t_sfm;
+    // Lidar initialization
+    {
+        bool lidar_info_available = true;
+
+        // clear key frame in the container
+        for (map<double, ImageFrame>::iterator frame_it = all_image_frame.begin(); frame_it != all_image_frame.end(); frame_it++)
+            frame_it->second.is_key_frame = false;
+
+        // check if lidar info in the window is valid
+        for (int i = 0; i <= WINDOW_SIZE; i++)
+        {
+            if (all_image_frame[Headers[i].stamp.sec + Headers[i].stamp.nanosec*1e-9].reset_id < 0 ||
+                all_image_frame[Headers[i].stamp.sec + Headers[i].stamp.nanosec*1e-9].reset_id != all_image_frame[Headers[0].stamp.sec + Headers[0].stamp.nanosec*1e-9].reset_id)
+            {
+                // lidar odometry not available (id=-1) or lidar odometry relocated due to pose correction
+                lidar_info_available = false;
+                // RCLCPP_INFO("Lidar initialization info not enough.");
+                break;
+            }
+        }
+
+        if (lidar_info_available == true)
+        {
+            // Update state
+            for (int i = 0; i <= WINDOW_SIZE; i++)
+            {
+                Ps[i] = all_image_frame[Headers[i].stamp.sec + Headers[i].stamp.nanosec *1e-9].T;
+                Rs[i] = all_image_frame[Headers[i].stamp.sec + Headers[i].stamp.nanosec *1e-9].R;
+                Vs[i] = all_image_frame[Headers[i].stamp.sec + Headers[i].stamp.nanosec *1e-9].V;
+                Bas[i] = all_image_frame[Headers[i].stamp.sec + Headers[i].stamp.nanosec *1e-9].Ba;
+                Bgs[i] = all_image_frame[Headers[i].stamp.sec + Headers[i].stamp.nanosec *1e-9].Bg;
+
+                pre_integrations[i]->repropagate(Bas[i], Bgs[i]);
+
+                all_image_frame[Headers[i].stamp.sec + Headers[i].stamp.nanosec*1e-9].is_key_frame = true;
+            }
+
+            // update gravity
+            g = Eigen::Vector3d(0, 0, all_image_frame[Headers[0].stamp.sec + Headers[0].stamp.nanosec*1e-9].gravity);
+
+            // reset all features
+            VectorXd dep = f_manager.getDepthVector();
+            for (int i = 0; i < dep.size(); i++)
+                dep[i] = -1;
+            f_manager.clearDepth(dep);
+
+            // triangulate all features
+            Vector3d TIC_TMP[NUM_OF_CAM];
+            for(int i = 0; i < NUM_OF_CAM; i++)
+                TIC_TMP[i].setZero();
+            ric[0] = RIC[0];
+            f_manager.setRic(ric);
+            f_manager.triangulate(Ps, &(TIC_TMP[0]), &(RIC[0]));
+
+            return true;
+        }
+    }
+
     //check imu observibility
     {
         map<double, ImageFrame>::iterator frame_it;
@@ -365,7 +415,6 @@ bool Estimator::initialStructure()
 
 bool Estimator::visualInitialAlign()
 {
-    TicToc t_g;
     VectorXd x;
     //solve scale
     bool result = VisualIMUAlignment(all_image_frame, Bgs, g, x);
@@ -478,9 +527,7 @@ void Estimator::solveOdometry()
         return;
     if (solver_flag == NON_LINEAR)
     {
-        TicToc t_tri;
         f_manager.triangulate(Ps, tic, ric);
-        RCUTILS_LOG_DEBUG("triangulation costs %f", t_tri.toc());
         optimization();
     }
 }
@@ -596,28 +643,6 @@ void Estimator::double2vector()
     if (ESTIMATE_TD)
         td = para_Td[0][0];
 
-    // relative info between two loop frame
-    if(relocalization_info)
-    { 
-        Matrix3d relo_r;
-        Vector3d relo_t;
-        relo_r = rot_diff * Quaterniond(relo_Pose[6], relo_Pose[3], relo_Pose[4], relo_Pose[5]).normalized().toRotationMatrix();
-        relo_t = rot_diff * Vector3d(relo_Pose[0] - para_Pose[0][0],
-                                     relo_Pose[1] - para_Pose[0][1],
-                                     relo_Pose[2] - para_Pose[0][2]) + origin_P0;
-        double drift_correct_yaw;
-        drift_correct_yaw = Utility::R2ypr(prev_relo_r).x() - Utility::R2ypr(relo_r).x();
-        drift_correct_r = Utility::ypr2R(Vector3d(drift_correct_yaw, 0, 0));
-        drift_correct_t = prev_relo_t - drift_correct_r * relo_t;   
-        relo_relative_t = relo_r.transpose() * (Ps[relo_frame_local_index] - relo_t);
-        relo_relative_q = relo_r.transpose() * Rs[relo_frame_local_index];
-        relo_relative_yaw = Utility::normalizeAngle(Utility::R2ypr(Rs[relo_frame_local_index]).x() - Utility::R2ypr(relo_r).x());
-        //cout << "vins relo " << endl;
-        //cout << "vins relative_t " << relo_relative_t.transpose() << endl;
-        //cout << "vins relative_yaw " <<relo_relative_yaw << endl;
-        relocalization_info = 0;    
-
-    }
 }
 
 bool Estimator::failureDetection()
@@ -637,15 +662,14 @@ bool Estimator::failureDetection()
         RCUTILS_LOG_INFO(" big IMU gyr bias estimation %f", Bgs[WINDOW_SIZE].norm());
         return true;
     }
-    /*
-    if (tic(0) > 1)
+    if (Vs[WINDOW_SIZE].norm() > 30.0)
     {
-        RCUTILS_LOG_INFO(" big extri param estimation %d", tic(0) > 1);
+        RCUTILS_LOG_ERROR("VINS big speed %f, restart estimator!", Vs[WINDOW_SIZE].norm());
         return true;
     }
-    */
+
     Vector3d tmp_P = Ps[WINDOW_SIZE];
-    if ((tmp_P - last_P).norm() > 5)
+    if ((tmp_P - last_P).norm() > 5.0)
     {
         RCUTILS_LOG_INFO(" big translation");
         return true;
@@ -659,7 +683,7 @@ bool Estimator::failureDetection()
     Matrix3d delta_R = tmp_R.transpose() * last_R;
     Quaterniond delta_Q(delta_R);
     double delta_angle;
-    delta_angle = acos(delta_Q.w()) * 2.0 / 3.14 * 180.0;
+    delta_angle = acos(delta_Q.w()) * 2.0 / M_PI * 180.0;
     if (delta_angle > 50)
     {
         RCUTILS_LOG_INFO(" big delta_angle ");
@@ -699,7 +723,7 @@ void Estimator::optimization()
         //problem.SetParameterBlockConstant(para_Td[0]);
     }
 
-    TicToc t_whole, t_prepare;
+
     vector2double();
 
     if (last_marginalization_info)
@@ -742,65 +766,28 @@ void Estimator::optimization()
             Vector3d pts_j = it_per_frame.point;
             if (ESTIMATE_TD)
             {
-                    ProjectionTdFactor *f_td = new ProjectionTdFactor(pts_i, pts_j, it_per_id.feature_per_frame[0].velocity, it_per_frame.velocity,
-                                                                     it_per_id.feature_per_frame[0].cur_td, it_per_frame.cur_td,
-                                                                     it_per_id.feature_per_frame[0].uv.y(), it_per_frame.uv.y());
-                    problem.AddResidualBlock(f_td, loss_function, para_Pose[imu_i], para_Pose[imu_j], para_Ex_Pose[0], para_Feature[feature_index], para_Td[0]);
-                    /*
-                    double **para = new double *[5];
-                    para[0] = para_Pose[imu_i];
-                    para[1] = para_Pose[imu_j];
-                    para[2] = para_Ex_Pose[0];
-                    para[3] = para_Feature[feature_index];
-                    para[4] = para_Td[0];
-                    f_td->check(para);
-                    */
+                ProjectionTdFactor *f_td = new ProjectionTdFactor(pts_i, pts_j, it_per_id.feature_per_frame[0].velocity, it_per_frame.velocity,
+                                                                 it_per_id.feature_per_frame[0].cur_td, it_per_frame.cur_td,
+                                                                 it_per_id.feature_per_frame[0].uv.y(), it_per_frame.uv.y());
+                problem.AddResidualBlock(f_td, loss_function, para_Pose[imu_i], para_Pose[imu_j], para_Ex_Pose[0], para_Feature[feature_index], para_Td[0]);
+
+                // depth is obtained from lidar, skip optimizing it
+                if (it_per_id.lidar_depth_flag == true)
+                    problem.SetParameterBlockConstant(para_Feature[feature_index]);
             }
             else
             {
                 ProjectionFactor *f = new ProjectionFactor(pts_i, pts_j);
                 problem.AddResidualBlock(f, loss_function, para_Pose[imu_i], para_Pose[imu_j], para_Ex_Pose[0], para_Feature[feature_index]);
+
+                // depth is obtained from lidar, skip optimizing it
+                if (it_per_id.lidar_depth_flag == true)
+                    problem.SetParameterBlockConstant(para_Feature[feature_index]);
             }
             f_m_cnt++;
         }
     }
 
-    RCUTILS_LOG_DEBUG("visual measurement count: %d", f_m_cnt);
-    RCUTILS_LOG_DEBUG("prepare for ceres: %f", t_prepare.toc());
-
-    if(relocalization_info)
-    {
-        //printf("set relocalization factor! \n");
-        ceres::LocalParameterization *local_parameterization = new PoseLocalParameterization();
-        problem.AddParameterBlock(relo_Pose, SIZE_POSE, local_parameterization);
-        int retrive_feature_index = 0;
-        int feature_index = -1;
-        for (auto &it_per_id : f_manager.feature)
-        {
-            it_per_id.used_num = it_per_id.feature_per_frame.size();
-            if (!(it_per_id.used_num >= 2 && it_per_id.start_frame < WINDOW_SIZE - 2))
-                continue;
-            ++feature_index;
-            int start = it_per_id.start_frame;
-            if(start <= relo_frame_local_index)
-            {   
-                while((int)match_points[retrive_feature_index].z() < it_per_id.feature_id)
-                {
-                    retrive_feature_index++;
-                }
-                if((int)match_points[retrive_feature_index].z() == it_per_id.feature_id)
-                {
-                    Vector3d pts_j = Vector3d(match_points[retrive_feature_index].x(), match_points[retrive_feature_index].y(), 1.0);
-                    Vector3d pts_i = it_per_id.feature_per_frame[0].point;
-                    
-                    ProjectionFactor *f = new ProjectionFactor(pts_i, pts_j);
-                    problem.AddResidualBlock(f, loss_function, para_Pose[start], relo_Pose, para_Ex_Pose[0], para_Feature[feature_index]);
-                    retrive_feature_index++;
-                }     
-            }
-        }
-
-    }
 
     ceres::Solver::Options options;
 
@@ -815,16 +802,13 @@ void Estimator::optimization()
         options.max_solver_time_in_seconds = SOLVER_TIME * 4.0 / 5.0;
     else
         options.max_solver_time_in_seconds = SOLVER_TIME;
-    TicToc t_solver;
+
     ceres::Solver::Summary summary;
     ceres::Solve(options, &problem, &summary);
     //cout << summary.BriefReport() << endl;
-    RCUTILS_LOG_DEBUG("Iterations : %d", static_cast<int>(summary.iterations.size()));
-    RCUTILS_LOG_DEBUG("solver costs: %f", t_solver.toc());
 
     double2vector();
 
-    TicToc t_whole_marginalization;
     if (marginalization_flag == MARGIN_OLD)
     {
         MarginalizationInfo *marginalization_info = new MarginalizationInfo();
@@ -999,9 +983,6 @@ void Estimator::optimization()
             
         }
     }
-    RCUTILS_LOG_DEBUG("whole marginalization costs: %f", t_whole_marginalization.toc());
-    
-    RCUTILS_LOG_DEBUG("whole time for ceres: %f", t_whole.toc());
 }
 
 void Estimator::slideWindow()
@@ -1127,23 +1108,4 @@ void Estimator::slideWindowOld()
         f_manager.removeBack();
 }
 
-void Estimator::setReloFrame(double _frame_stamp, int _frame_index, vector<Vector3d> &_match_points, Vector3d _relo_t, Matrix3d _relo_r)
-{
-    relo_frame_stamp = _frame_stamp;
-    relo_frame_index = _frame_index;
-    match_points.clear();
-    match_points = _match_points;
-    prev_relo_t = _relo_t;
-    prev_relo_r = _relo_r;
-    for(int i = 0; i < WINDOW_SIZE; i++)
-    {
-        if(relo_frame_stamp == Headers[i].stamp.sec + Headers[i].stamp.nanosec * (1e-9))
-        {
-            relo_frame_local_index = i;
-            relocalization_info = 1;
-            for (int j = 0; j < SIZE_POSE; j++)
-                relo_Pose[j] = para_Pose[i][j];
-        }
-    }
-}
 

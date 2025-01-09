@@ -19,13 +19,15 @@ std::condition_variable con;
 double current_time = -1;
 queue<sensor_msgs::msg::Imu::SharedPtr> imu_buf;
 queue<sensor_msgs::msg::PointCloud::SharedPtr> feature_buf;
-queue<sensor_msgs::msg::PointCloud::SharedPtr> relo_buf;
-int sum_of_wait = 0;
+
+// global variable saving the lidar odometry
+deque<nav_msgs::msg::Odometry> odomQueue;
+odometryRegister *odomRegister;
 
 std::mutex m_buf;
 std::mutex m_state;
-std::mutex i_buf;
 std::mutex m_estimator;
+std::mutex m_odom;
 
 double latest_time;
 Eigen::Vector3d tmp_P;
@@ -100,7 +102,7 @@ getMeasurements()
 {
     std::vector<std::pair<std::vector<sensor_msgs::msg::Imu::SharedPtr>, sensor_msgs::msg::PointCloud::SharedPtr>> measurements;
 
-    while (true)
+    while (rclcpp::ok())
     {
         if (imu_buf.empty() || feature_buf.empty())
             return measurements;
@@ -108,7 +110,6 @@ getMeasurements()
         if (!((imu_buf.back()->header.stamp.sec+imu_buf.back()->header.stamp.nanosec * (1e-9)) > (feature_buf.front()->header.stamp.sec+feature_buf.front()->header.stamp.nanosec * (1e-9)) + estimator.td))
         {
             //RCUTILS_LOG_WARN("wait for imu, only should happen at the beginning");
-            sum_of_wait++;
             return measurements;
         }
 
@@ -157,12 +158,17 @@ void imu_callback(const sensor_msgs::msg::Imu::SharedPtr imu_msg)
         std::lock_guard<std::mutex> lg(m_state);
         predict(imu_msg);
         std_msgs::msg::Header header = imu_msg->header;
-        header.frame_id = "world";
         if (estimator.solver_flag == Estimator::SolverFlag::NON_LINEAR)
-            pubLatestOdometry(tmp_P, tmp_Q, tmp_V, header);
+            pubLatestOdometry(tmp_P, tmp_Q, tmp_V, header, estimator.failureCount);
     }
 }
 
+void odom_callback(const nav_msgs::msg::Odometry::SharedPtr odom_msg)
+{
+    m_odom.lock();
+    odomQueue.push_back(*odom_msg);
+    m_odom.unlock();
+}
 
 void feature_callback(const sensor_msgs::msg::PointCloud::SharedPtr feature_msg)
 {
@@ -199,18 +205,10 @@ void restart_callback(const std_msgs::msg::Bool::SharedPtr restart_msg)
     return;
 }
 
-void relocalization_callback(const sensor_msgs::msg::PointCloud::SharedPtr points_msg)
-{
-    //printf("relocalization callback! \n");
-    m_buf.lock();
-    relo_buf.push(points_msg);
-    m_buf.unlock();
-}
-
 // thread: visual-inertial odometry
 void process()
 {
-    while (true)
+    while (rclcpp::ok())
     {
         std::vector<std::pair<std::vector<sensor_msgs::msg::Imu::SharedPtr>, sensor_msgs::msg::PointCloud::SharedPtr>> measurements;
         std::unique_lock<std::mutex> lk(m_buf);
@@ -220,10 +218,13 @@ void process()
                  });
 
         lk.unlock();
+
         m_estimator.lock();
         for (auto &measurement : measurements)
         {
             auto img_msg = measurement.second;
+
+            // 1. IMU pre-integration
             double dx = 0, dy = 0, dz = 0, rx = 0, ry = 0, rz = 0;
             for (auto &imu_msg : measurement.first)
             {
@@ -266,37 +267,11 @@ void process()
                     //printf("dimu: dt:%f a: %f %f %f w: %f %f %f\n",dt_1, dx, dy, dz, rx, ry, rz);
                 }
             }
-            // set relocalization frame
-            sensor_msgs::msg::PointCloud::SharedPtr relo_msg = NULL;
-            while (!relo_buf.empty())
-            {
-                relo_msg = relo_buf.front();
-                relo_buf.pop();
-            }
-            if (relo_msg != NULL)
-            {
-                vector<Vector3d> match_points;
-                double frame_stamp = relo_msg->header.stamp.sec+relo_msg->header.stamp.nanosec * (1e-9);
-                for (unsigned int i = 0; i < relo_msg->points.size(); i++)
-                {
-                    Vector3d u_v_id;
-                    u_v_id.x() = relo_msg->points[i].x;
-                    u_v_id.y() = relo_msg->points[i].y;
-                    u_v_id.z() = relo_msg->points[i].z;
-                    match_points.push_back(u_v_id);
-                }
-                Vector3d relo_t(relo_msg->channels[0].values[0], relo_msg->channels[0].values[1], relo_msg->channels[0].values[2]);
-                Quaterniond relo_q(relo_msg->channels[0].values[3], relo_msg->channels[0].values[4], relo_msg->channels[0].values[5], relo_msg->channels[0].values[6]);
-                Matrix3d relo_r = relo_q.toRotationMatrix();
-                int frame_index;
-                frame_index = relo_msg->channels[0].values[7];
-                estimator.setReloFrame(frame_stamp, frame_index, match_points, relo_t, relo_r);
-            }
 
-            RCUTILS_LOG_DEBUG("processing vision data with stamp %f \n", img_msg->header.stamp.sec+img_msg->header.stamp.nanosec * (1e-9));
+            // 2. VINS Optimization
 
             TicToc t_s;
-            map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>> image;
+            map<int, vector<pair<int, Eigen::Matrix<double, 8, 1>>>> image;
             for (unsigned int i = 0; i < img_msg->points.size(); i++)
             {
                 int v = img_msg->channels[0].values[i] + 0.5;
@@ -309,17 +284,22 @@ void process()
                 double p_v = img_msg->channels[2].values[i];
                 double velocity_x = img_msg->channels[3].values[i];
                 double velocity_y = img_msg->channels[4].values[i];
-                assert(z == 1);
-                Eigen::Matrix<double, 7, 1> xyz_uv_velocity;
-                xyz_uv_velocity << x, y, z, p_u, p_v, velocity_x, velocity_y;
-                image[feature_id].emplace_back(camera_id,  xyz_uv_velocity);
-            }
-            estimator.processImage(image, img_msg->header);
+                double depth = img_msg->channels[5].values[i];
 
-            double whole_t = t_s.toc();
-            printStatistics(estimator, whole_t);
+                assert(z == 1);
+                Eigen::Matrix<double, 8, 1> xyz_uv_velocity_depth;
+                xyz_uv_velocity_depth << x, y, z, p_u, p_v, velocity_x, velocity_y, depth;
+                image[feature_id].emplace_back(camera_id,  xyz_uv_velocity_depth);
+            }
+            // Get initialization info from lidar odometry
+            vector<float> initialization_info;
+            m_odom.lock();
+            initialization_info = odomRegister->getOdometry(odomQueue, img_msg->header.stamp.sec + img_msg->header.stamp.nanosec*1e-9 + estimator.td);
+            m_odom.unlock();
+
+            estimator.processImage(image, initialization_info, img_msg->header);
+
             std_msgs::msg::Header header = img_msg->header;
-            header.frame_id = "world";
 
             pubOdometry(estimator, header);
             pubKeyPoses(estimator, header);
@@ -327,11 +307,10 @@ void process()
             pubPointCloud(estimator, header);
             pubTF(estimator, header);
             pubKeyframe(estimator);
-            if (relo_msg != NULL)
-                pubRelocalization(estimator);
-            //RCUTILS_LOG_ERROR("end: %f, at %f", img_msg->header.stamp.toSec(), ros::Time::now().toSec());
+
         }
         m_estimator.unlock();
+
         m_buf.lock();
         m_state.lock();
         if (estimator.solver_flag == Estimator::SolverFlag::NON_LINEAR)
@@ -354,13 +333,13 @@ int main(int argc, char **argv)
 
     registerPub(n);
 
-    auto sub_imu = n->create_subscription<sensor_msgs::msg::Imu>(IMU_TOPIC, rclcpp::QoS(rclcpp::KeepLast(2000)), imu_callback);
-    auto sub_image = n->create_subscription<sensor_msgs::msg::PointCloud>("/feature_tracker/feature", rclcpp::QoS(rclcpp::KeepLast(2000)), feature_callback);
-    auto sub_restart = n->create_subscription<std_msgs::msg::Bool>("/feature_tracker/restart", rclcpp::QoS(rclcpp::KeepLast(2000)), restart_callback);
-    auto sub_relo_points = n->create_subscription<sensor_msgs::msg::PointCloud>("/pose_graph/match_points", rclcpp::QoS(rclcpp::KeepLast(2000)), relocalization_callback);
+    auto sub_imu = n->create_subscription<sensor_msgs::msg::Imu>(IMU_TOPIC, rclcpp::QoS(rclcpp::KeepLast(5000)), imu_callback);
+    auto sub_odom = n->create_subscription<nav_msgs::msg::Odometry>("odometry/imu",rclcpp::QoS(rclcpp::KeepLast(5000)), odom_callback);
+    auto sub_image = n->create_subscription<sensor_msgs::msg::PointCloud>("/vins/feature/feature", rclcpp::QoS(rclcpp::KeepLast(2000)), feature_callback);
+    auto sub_restart = n->create_subscription<std_msgs::msg::Bool>("/vins/feature/restart", rclcpp::QoS(rclcpp::KeepLast(2000)), restart_callback);
 
     std::thread measurement_process{process};
-    rclcpp::spin(n);
+    rclcpp::spin(n);    // TODO: use multithreaded spinner
 
     return 0;
 }

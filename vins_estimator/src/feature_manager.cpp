@@ -42,7 +42,7 @@ int FeatureManager::getFeatureCount()
 }
 
 
-bool FeatureManager::addFeatureCheckParallax(int frame_count, const map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>> &image, double td)
+bool FeatureManager::addFeatureCheckParallax(int frame_count, const map<int, vector<pair<int, Eigen::Matrix<double, 8, 1>>>> &image, double td)
 {
     RCUTILS_LOG_DEBUG("input feature: %d", (int)image.size());
     RCUTILS_LOG_DEBUG("num of feature: %d", getFeatureCount());
@@ -61,13 +61,22 @@ bool FeatureManager::addFeatureCheckParallax(int frame_count, const map<int, vec
 
         if (it == feature.end())
         {
-            feature.push_back(FeaturePerId(feature_id, frame_count));
+            feature.push_back(FeaturePerId(feature_id, frame_count, f_per_fra.depth));
             feature.back().feature_per_frame.push_back(f_per_fra);
         }
         else if (it->feature_id == feature_id)
         {
             it->feature_per_frame.push_back(f_per_fra);
             last_track_num++;
+
+            // sometimes the feature is first observed without depth
+            // (initialize initial feature depth with current image depth is not exactly accurate if camera moves very fast, then lines bebow can be commented out)
+            if (f_per_fra.depth > 0 && it->lidar_depth_flag == false)
+            {
+                it->estimated_depth = f_per_fra.depth;
+                it->lidar_depth_flag = true;
+                it->feature_per_frame[0].depth = f_per_fra.depth;
+            }
         }
     }
 
@@ -178,6 +187,7 @@ void FeatureManager::clearDepth(const VectorXd &x)
         if (!(it_per_id.used_num >= 2 && it_per_id.start_frame < WINDOW_SIZE - 2))
             continue;
         it_per_id.estimated_depth = 1.0 / x(++feature_index);
+        it_per_id.lidar_depth_flag = false;
     }
 }
 
@@ -190,11 +200,12 @@ VectorXd FeatureManager::getDepthVector()
         it_per_id.used_num = it_per_id.feature_per_frame.size();
         if (!(it_per_id.used_num >= 2 && it_per_id.start_frame < WINDOW_SIZE - 2))
             continue;
-#if 1
-        dep_vec(++feature_index) = 1. / it_per_id.estimated_depth;
-#else
-        dep_vec(++feature_index) = it_per_id->estimated_depth;
-#endif
+
+        // optimized depth after ceres maybe negative, initialize them with default value for this optimization
+        if (it_per_id.estimated_depth > 0)
+            dep_vec(++feature_index) = 1. / it_per_id.estimated_depth;
+        else
+            dep_vec(++feature_index) = 1. / INIT_DEPTH;
     }
     return dep_vec;
 }
@@ -248,7 +259,7 @@ void FeatureManager::triangulate(Vector3d Ps[], Vector3d tic[], Matrix3d ric[])
         it_per_id.estimated_depth = svd_method;
         //it_per_id->estimated_depth = INIT_DEPTH;
 
-        if (it_per_id.estimated_depth < 0.1)
+        if (it_per_id.estimated_depth < 0.0)
         {
             it_per_id.estimated_depth = INIT_DEPTH;
         }
@@ -282,7 +293,16 @@ void FeatureManager::removeBackShiftDepth(Eigen::Matrix3d marg_R, Eigen::Vector3
             it->start_frame--;
         else
         {
-            Eigen::Vector3d uv_i = it->feature_per_frame[0].point;  
+            Eigen::Vector3d uv_i = it->feature_per_frame[0].point;
+            double depth = -1;
+            if (it->feature_per_frame[0].depth > 0)
+                // if lidar depth available at this frame for feature
+                    depth = it->feature_per_frame[0].depth;
+            else if (it->estimated_depth > 0)
+                // if estimated depth available
+                    depth = it->estimated_depth;
+
+            // delete current feature in the old local camera frame
             it->feature_per_frame.erase(it->feature_per_frame.begin());
             if (it->feature_per_frame.size() < 2)
             {
@@ -291,23 +311,30 @@ void FeatureManager::removeBackShiftDepth(Eigen::Matrix3d marg_R, Eigen::Vector3
             }
             else
             {
-                Eigen::Vector3d pts_i = uv_i * it->estimated_depth;
+                Eigen::Vector3d pts_i = uv_i * depth;
                 Eigen::Vector3d w_pts_i = marg_R * pts_i + marg_P;
                 Eigen::Vector3d pts_j = new_R.transpose() * (w_pts_i - new_P);
                 double dep_j = pts_j(2);
-                if (dep_j > 0)
+                // after deletion, the feature has lidar depth in the first of the remaining frame
+                if (it->feature_per_frame[0].depth > 0)
+                {
+                    it->estimated_depth = it->feature_per_frame[0].depth;
+                    it->lidar_depth_flag = true;
+                }
+                // calculated depth in the current frame
+                else if (dep_j > 0)
+                {
                     it->estimated_depth = dep_j;
+                    it->lidar_depth_flag = false;
+                }
+                // non-positive depth, invalid
                 else
+                {
                     it->estimated_depth = INIT_DEPTH;
+                    it->lidar_depth_flag = false;
+                }
             }
         }
-        // remove tracking-lost feature after marginalize
-        /*
-        if (it->endFrame() < WINDOW_SIZE - 1)
-        {
-            feature.erase(it);
-        }
-        */
     }
 }
 

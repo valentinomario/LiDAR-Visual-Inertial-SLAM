@@ -10,7 +10,7 @@ def generate_launch_description():
 
     config_path = PathJoinSubstitution([
         config_pkg_path,
-        'config/euroc/euroc_config.yaml'
+        'config/garden/params_camera.yaml'
     ])
 
 
@@ -27,9 +27,8 @@ def generate_launch_description():
     # Define the node
     feature_tracker_node = Node(
         package='feature_tracker',
-        executable='feature_tracker',
+        executable='feature_tracker_exec',
         name='feature_tracker',
-        namespace='feature_tracker',
         output='screen',
         parameters=[{
             'config_file': config_path,
@@ -53,9 +52,8 @@ def generate_launch_description():
     # Define the vins_estimator node
     vins_estimator_node = Node(
         package='vins_estimator',
-        executable='vins_estimator',
+        executable='vins_estimator_exec',
         name='vins_estimator',
-        namespace='vins_estimator',
         output='screen',
         parameters=[{
             'config_file': config_path,
@@ -68,7 +66,6 @@ def generate_launch_description():
         package='pose_graph',
         executable='pose_graph',
         name='pose_graph',
-        namespace='pose_graph',
         output='screen',
         parameters=[{
             'config_file': config_path,
@@ -80,14 +77,26 @@ def generate_launch_description():
         }]
     )
 
+        # bafgile compression
+
+    republish_node = Node(
+        package='image_transport',
+        executable='republish',
+        name='image_republish',
+        output='screen',
+        arguments=['compressed', 'in/compressed:=/camera/image_raw/compressed', 'raw', 'out:=/camera/image_raw'],
+        respawn=True
+    )
+
 
     return LaunchDescription([
-        LogInfo(msg=['[feature tracker launch] config path: ', config_path]),
-        LogInfo(msg=['[vins estimator launch] config path: ', config_path]),
-        LogInfo(msg=['[vins estimator launch] vins path: ', vins_path]),
-        LogInfo(msg=['[vins estimator launch] support path: ', support_path]),
+        # LogInfo(msg=['[feature tracker launch] config path: ', config_path]),
+        # LogInfo(msg=['[vins estimator launch] config path: ', config_path]),
+        # LogInfo(msg=['[vins estimator launch] vins path: ', vins_path]),
+        # LogInfo(msg=['[vins estimator launch] support path: ', support_path]),
         vins_estimator_node,
-        pose_graph_node,
+        #pose_graph_node,
         feature_tracker_node,
-        rviz_node
+        rviz_node,
+        republish_node
     ])

@@ -1,5 +1,7 @@
 #include "parameters.h"
 
+std::string PROJECT_NAME;
+
 double INIT_DEPTH;
 double MIN_PARALLAX;
 double ACC_N, ACC_W;
@@ -18,10 +20,12 @@ int ESTIMATE_EXTRINSIC;
 int ESTIMATE_TD;
 int ROLLING_SHUTTER;
 std::string EX_CALIB_RESULT_PATH;
-std::string VINS_RESULT_PATH;
 std::string IMU_TOPIC;
 double ROW, COL;
 double TD, TR;
+
+int USE_LIDAR;
+int ALIGN_CAMERA_LIDAR_COORDINATE;
 
 template <typename T>
 T readParam(rclcpp::Node::SharedPtr n, std::string name)
@@ -50,24 +54,20 @@ void readParameters(rclcpp::Node::SharedPtr n)
     {
         RCLCPP_ERROR(n->get_logger(), "ERROR: Wrong path to settings");
     }
+    fsSettings["project_name"] >> PROJECT_NAME;
+    std::string pkg_path = ament_index_cpp::get_package_share_directory(PROJECT_NAME);
 
     fsSettings["imu_topic"] >> IMU_TOPIC;
+
+    fsSettings["use_lidar"] >> USE_LIDAR;
+    fsSettings["align_camera_lidar_estimation"] >> ALIGN_CAMERA_LIDAR_COORDINATE;
+
 
     SOLVER_TIME = fsSettings["max_solver_time"];
     NUM_ITERATIONS = fsSettings["max_num_iterations"];
     MIN_PARALLAX = fsSettings["keyframe_parallax"];
     MIN_PARALLAX = MIN_PARALLAX / FOCAL_LENGTH;
 
-    std::string OUTPUT_PATH;
-    fsSettings["output_path"] >> OUTPUT_PATH;
-    VINS_RESULT_PATH = OUTPUT_PATH + "/vins_result_no_loop.csv";
-    RCLCPP_INFO(n->get_logger(), "result path %s", VINS_RESULT_PATH.c_str());
-
-    // create folder if not exists
-    FileSystemHelper::createDirectoryIfNotExists(OUTPUT_PATH.c_str());
-
-    std::ofstream fout(VINS_RESULT_PATH, std::ios::out);
-    fout.close();
 
     ACC_N = fsSettings["acc_n"];
     ACC_W = fsSettings["acc_w"];
@@ -76,7 +76,7 @@ void readParameters(rclcpp::Node::SharedPtr n)
     G.z() = fsSettings["g_norm"];
     ROW = fsSettings["image_height"];
     COL = fsSettings["image_width"];
-    RCLCPP_INFO(n->get_logger(), "ROW: %f COL: %f ", ROW, COL);
+    RCLCPP_INFO(n->get_logger(), "Image dimention: ROW: %f COL: %f ", ROW, COL);
 
     ESTIMATE_EXTRINSIC = fsSettings["estimate_extrinsic"];
     if (ESTIMATE_EXTRINSIC == 2)
@@ -84,14 +84,14 @@ void readParameters(rclcpp::Node::SharedPtr n)
         RCLCPP_WARN(n->get_logger(), "have no prior about extrinsic param, calibrate extrinsic param");
         RIC.push_back(Eigen::Matrix3d::Identity());
         TIC.push_back(Eigen::Vector3d::Zero());
-        EX_CALIB_RESULT_PATH = OUTPUT_PATH + "/extrinsic_parameter.csv";
+        EX_CALIB_RESULT_PATH = pkg_path + "/config/extrinsic_parameter.csv";
     }
     else 
     {
         if ( ESTIMATE_EXTRINSIC == 1)
         {
             RCLCPP_WARN(n->get_logger(), " Optimize extrinsic param around initial guess!");
-            EX_CALIB_RESULT_PATH = OUTPUT_PATH + "/extrinsic_parameter.csv";
+            EX_CALIB_RESULT_PATH = pkg_path + "/config/extrinsic_parameter.csv";
         }
         if (ESTIMATE_EXTRINSIC == 0)
             RCLCPP_WARN(n->get_logger(), " fix extrinsic param ");
@@ -134,4 +134,5 @@ void readParameters(rclcpp::Node::SharedPtr n)
     }
     
     fsSettings.release();
+    usleep(100);
 }
