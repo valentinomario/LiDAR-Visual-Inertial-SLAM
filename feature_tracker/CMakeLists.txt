@@ -23,6 +23,7 @@ find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(OpenCV 4 REQUIRED)
+find_package(camera_model REQUIRED)
 find_package(livox_ros_driver2 REQUIRED)
 
 include_directories("../camera_model/include")

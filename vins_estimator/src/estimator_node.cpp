@@ -31,7 +31,7 @@ std::mutex m_odom;
 
 double latest_time;
 Eigen::Vector3d tmp_P;
-Eigen::Quaterniond tmp_Q;
+Eigen::Quaterniond tmp_Q(1,0,0,0);
 Eigen::Vector3d tmp_V;
 Eigen::Vector3d tmp_Ba;
 Eigen::Vector3d tmp_Bg;
@@ -322,6 +322,8 @@ void process()
 
 int main(int argc, char **argv)
 {
+    // --ros-args -r __node:=estimator_node -p config_file:="/home/user/new_ws/install/config_pkg/share/config_pkg/config/garden/params_camera.yaml" -p vins_folder:="/home/user/new_ws/install/config_pkg/share/config_pkg/config/../"
+
     rclcpp::init(argc, argv);
     auto n = rclcpp::Node::make_shared("vins_estimator");
     readParameters(n);
