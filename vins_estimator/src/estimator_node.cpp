@@ -31,7 +31,7 @@ std::mutex m_odom;
 
 double latest_time;
 Eigen::Vector3d tmp_P;
-Eigen::Quaterniond tmp_Q(1,0,0,0);
+Eigen::Quaterniond tmp_Q;
 Eigen::Vector3d tmp_V;
 Eigen::Vector3d tmp_Ba;
 Eigen::Vector3d tmp_Bg;
@@ -47,7 +47,7 @@ void predict(const sensor_msgs::msg::Imu::SharedPtr imu_msg)
     if (init_imu)
     {
         latest_time = t;
-        init_imu = 0;
+        init_imu = false;
         return;
     }
     double dt = t - latest_time;
@@ -102,7 +102,7 @@ getMeasurements()
 {
     std::vector<std::pair<std::vector<sensor_msgs::msg::Imu::SharedPtr>, sensor_msgs::msg::PointCloud::SharedPtr>> measurements;
 
-    while (rclcpp::ok())
+    while (true)
     {
         if (imu_buf.empty() || feature_buf.empty())
             return measurements;
@@ -208,7 +208,7 @@ void restart_callback(const std_msgs::msg::Bool::SharedPtr restart_msg)
 // thread: visual-inertial odometry
 void process()
 {
-    while (rclcpp::ok())
+    while (true)
     {
         std::vector<std::pair<std::vector<sensor_msgs::msg::Imu::SharedPtr>, sensor_msgs::msg::PointCloud::SharedPtr>> measurements;
         std::unique_lock<std::mutex> lk(m_buf);

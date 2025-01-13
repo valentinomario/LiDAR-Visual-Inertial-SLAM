@@ -1,7 +1,7 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, LogInfo
 from ament_index_python.packages import get_package_share_directory
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, Command
 from launch_ros.actions import Node
 
 def generate_launch_description():
@@ -13,6 +13,10 @@ def generate_launch_description():
         'config/garden/params_camera.yaml'
     ])
 
+    xacro_path = PathJoinSubstitution([
+        config_pkg_path,
+        'config/garden/robot.urdf.xacro'
+    ])
 
     vins_path = PathJoinSubstitution([
         config_pkg_path,
@@ -77,8 +81,7 @@ def generate_launch_description():
         }]
     )
 
-        # bafgile compression
-
+    # bafgile compression
     republish_node = Node(
         package='image_transport',
         executable='republish',
@@ -87,6 +90,16 @@ def generate_launch_description():
         arguments=['compressed', 'in/compressed:=/camera/image_raw/compressed', 'raw', 'out:=/camera/image_raw'],
         respawn=True
     )
+
+    robot_state_publisher = Node(
+            package='robot_state_publisher',
+            executable='robot_state_publisher',
+            name='robot_state_publisher',
+            output='screen',
+            parameters=[{
+                'robot_description': Command(['xacro', ' ', xacro_path])
+            }]
+        )
 
 
     return LaunchDescription([
@@ -98,5 +111,6 @@ def generate_launch_description():
         #pose_graph_node,
         feature_tracker_node,
         rviz_node,
-        republish_node
+        republish_node,
+        # robot_state_publisher
     ])

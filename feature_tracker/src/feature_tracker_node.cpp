@@ -349,7 +349,7 @@ void lidar_callback(const sensor_msgs::msg::PointCloud2::SharedPtr laser_msg)
 
 int main(int argc, char **argv)
 {
-    // --ros-args r -r __node:=feature_tracker -p config_file:="/home/user/new_ws/install/config_pkg/share/config_pkg/config/garden/params_camera.yaml" -p vins_folder:="/home/user/new_ws/install/config_pkg/share/config_pkg/config/../"
+    // --ros-args -r __node:=feature_tracker -p config_file:="/home/user/new_ws/install/config_pkg/share/config_pkg/config/garden/params_camera.yaml" -p vins_folder:="/home/user/new_ws/install/config_pkg/share/config_pkg/config/../"
     rclcpp::init(argc, argv);
     auto n = rclcpp::Node::make_shared("feature_tracker");
 
