@@ -344,7 +344,7 @@ void lidar_callback(const sensor_msgs::msg::PointCloud2::SharedPtr laser_msg)
     downSizeFilter.setInputCloud(depthCloud);
     downSizeFilter.filter(*depthCloudDS);
     *depthCloud = *depthCloudDS;
-    cout<<"Lidar cloud size: "<<*depthCloud<<endl;
+    // cout<<"Lidar cloud size: "<<*depthCloud<<endl;
 }
 
 int main(int argc, char **argv)

@@ -341,7 +341,10 @@ int main(int argc, char **argv)
     auto sub_restart = n->create_subscription<std_msgs::msg::Bool>("/vins/feature/restart", rclcpp::QoS(rclcpp::KeepLast(2000)), restart_callback);
 
     std::thread measurement_process{process};
-    rclcpp::spin(n);    // TODO: use multithreaded spinner
+    rclcpp::executors::MultiThreadedExecutor executor;
+    executor.add_node(n);
+    executor.spin();
+    // rclcpp::spin(n);
 
     return 0;
 }
