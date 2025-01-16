@@ -144,8 +144,6 @@ void imu_callback(const sensor_msgs::msg::Imu::SharedPtr imu_msg)
         return;
     }
 
-    last_imu_t = imu_msg->header.stamp.sec+imu_msg->header.stamp.nanosec * (1e-9);
-
     m_buf.lock();
     imu_buf.push(imu_msg);
     m_buf.unlock();

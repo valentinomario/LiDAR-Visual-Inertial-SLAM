@@ -132,7 +132,7 @@ void img_callback(const sensor_msgs::msg::Image::SharedPtr img_msg)
         sensor_msgs::msg::ChannelFloat32 velocity_y_of_point;
 
         feature_points->header = img_msg->header;
-        feature_points->header.frame_id = "vins_body"; // TODO era world
+        feature_points->header.frame_id = "vins_body";
 
         vector<set<int>> hash_ids(NUM_OF_CAM);
         for (int i = 0; i < NUM_OF_CAM; i++)

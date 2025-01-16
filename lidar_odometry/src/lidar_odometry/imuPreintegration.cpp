@@ -86,7 +86,7 @@ class TransformFusion : public ParamServer {
     void imuOdometryHandler(const nav_msgs::msg::Odometry::SharedPtr odomMsg) {
         std::lock_guard<std::mutex> lock(mtx);
 
-        imuOdomQueue.push_back(*odomMsg);
+        imuOdomQuconfig_patheue.push_back(*odomMsg);
 
         // get latest odometry (at current IMU stamp)
         if (lidarOdomTime == -1) return;
