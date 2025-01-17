@@ -5,6 +5,8 @@ project_name: "emv_lio2"
 
 #common parameters
 imu_topic: "/imu_raw"
+imu_gravity: 1
+
 image_topic: "/camera/image_raw"
 # should be: point_cloud_topic: "lvi_sam/lidar/deskew/cloud_deskewed"
 point_cloud_topic: "/points_raw"

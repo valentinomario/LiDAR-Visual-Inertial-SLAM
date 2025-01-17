@@ -24,6 +24,8 @@ std::string IMU_TOPIC;
 double ROW, COL;
 double TD, TR;
 
+double IMU_G;
+
 int USE_LIDAR;
 int ALIGN_CAMERA_LIDAR_COORDINATE;
 
@@ -132,6 +134,8 @@ void readParameters(rclcpp::Node::SharedPtr n)
     {
         TR = 0;
     }
+
+    IMU_G = fsSettings["imu_gravity"];
     
     fsSettings.release();
     usleep(100);

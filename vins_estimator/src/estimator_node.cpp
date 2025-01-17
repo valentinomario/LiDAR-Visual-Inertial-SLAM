@@ -144,6 +144,10 @@ void imu_callback(const sensor_msgs::msg::Imu::SharedPtr imu_msg)
         return;
     }
 
+    imu_msg->linear_acceleration.x *= IMU_G;
+    imu_msg->linear_acceleration.y *= IMU_G;
+    imu_msg->linear_acceleration.z *= IMU_G;
+
     m_buf.lock();
     imu_buf.push(imu_msg);
     m_buf.unlock();
