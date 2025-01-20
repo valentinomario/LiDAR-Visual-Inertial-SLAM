@@ -11,7 +11,7 @@
 #include <eigen3/Eigen/Dense>
 #include <sensor_msgs/msg/channel_float32.hpp>
 #include <geometry_msgs/msg/point32.hpp>
-
+#include <image_transport/image_transport.hpp>
 
 #include "camodocal/camera_models/CameraFactory.h"
 #include "camodocal/camera_models/CataCamera.h"

@@ -77,8 +77,7 @@ def generate_launch_description():
         }]
     )
 
-        # bafgile compression
-
+    # bafgile compression
     republish_node = Node(
         package='image_transport',
         executable='republish',
@@ -98,5 +97,5 @@ def generate_launch_description():
         # pose_graph_node,
         # feature_tracker_node,
         rviz_node,
-        republish_node
+        #republish_node
     ])

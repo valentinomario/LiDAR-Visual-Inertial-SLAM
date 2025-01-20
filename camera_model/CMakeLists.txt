@@ -11,6 +11,8 @@ find_package(std_msgs REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem program_options system)
 include_directories(${Boost_INCLUDE_DIRS})
 
+file(GLOB Boost_LIBRARIES /usr/lib/libboost_*.so)
+
 find_package(OpenCV 4 REQUIRED)
 find_package(Ceres REQUIRED)
 include_directories(${CERES_INCLUDE_DIRS})
@@ -52,6 +54,7 @@ add_library(camera_model
 
 target_link_libraries(Calibration ${Boost_LIBRARIES} ${OpenCV_LIBS} ${CERES_LIBRARIES})
 target_link_libraries(camera_model ${Boost_LIBRARIES} ${OpenCV_LIBS} ${CERES_LIBRARIES})
+
 
 # Install
 install(TARGETS

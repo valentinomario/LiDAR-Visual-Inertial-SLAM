@@ -1,6 +1,7 @@
 #include "feature_tracker.h"
 
 #define SHOW_UNDISTORTION 0
+#define DEBUG_CALLBACK_FPS 1
 
 vector<uchar> r_status;
 vector<float> r_err;
@@ -30,7 +31,7 @@ std::shared_ptr<tf2_ros::Buffer> tfBuffer;
 std::shared_ptr<tf2_ros::TransformListener> listener;
 tf2::Stamped<tf2::Transform> tfTransform;
 
-void img_callback(const sensor_msgs::msg::Image::SharedPtr img_msg)
+void img_callback(const sensor_msgs::msg::Image::ConstSharedPtr img_msg)
 {
     double cur_img_time = img_msg->header.stamp.sec+img_msg->header.stamp.nanosec*(1e-9);
 
@@ -45,7 +46,7 @@ void img_callback(const sensor_msgs::msg::Image::SharedPtr img_msg)
     // detect unstable camera stream
     if (cur_img_time - last_image_time > 1.0 || cur_img_time < last_image_time)
     {
-        RCUTILS_LOG_WARN("image discontinue! reset the feature tracker!");
+        RCUTILS_LOG_WARN("image discontinue! reset the feature tracker! %s", cur_img_time - last_image_time > 1.0 ? " slow" : " unstable");
         first_image_flag = true; 
         last_image_time = 0;
         pub_count = 1;
@@ -54,6 +55,43 @@ void img_callback(const sensor_msgs::msg::Image::SharedPtr img_msg)
         pub_restart->publish(restart_flag);
         return;
     }
+
+    // Debug callback rate
+#if DEBUG_CALLBACK_FPS
+    static auto last_time = std::chrono::steady_clock::now();
+    static std::vector<double> fps_values;
+    static std::vector<double> camera_fps_values;
+    static constexpr size_t max_samples = 1000;
+
+    auto current_time = std::chrono::steady_clock::now();
+    double elapsed_time = std::chrono::duration<double>(current_time - last_time).count();
+    double camera_elapsed_time = cur_img_time - last_image_time;
+
+    last_time = current_time;
+
+    if (elapsed_time > 0.001 && camera_elapsed_time > 0.001) {
+
+        double fps = 1.0 / elapsed_time;
+        double camera_fps = 1.0/ camera_elapsed_time;
+
+        fps_values.push_back(fps);
+        camera_fps_values.push_back(camera_fps);
+
+        if (fps_values.size() > max_samples) {
+            fps_values.erase(fps_values.begin());
+        }
+
+        if (camera_fps_values.size() > max_samples) {
+            camera_fps_values.erase(camera_fps_values.begin());
+        }
+
+        double avg_fps = std::accumulate(fps_values.begin(), fps_values.end(), 0.0) / fps_values.size();
+        double camera_avg_fps = std::accumulate(camera_fps_values.begin(), camera_fps_values.end(), 0.0) / camera_fps_values.size();
+
+        RCLCPP_INFO(rclcpp::get_logger("image_subscriber"), "Callback rate/FPS: %.2f/%.2f ", avg_fps, camera_avg_fps);
+    }
+#endif
+
 
     last_image_time = cur_img_time;
     // frequency control
@@ -376,7 +414,9 @@ int main(int argc, char **argv)
 
     tfBuffer = std::make_shared<tf2_ros::Buffer>(n->get_clock());
     listener = std::make_shared<tf2_ros::TransformListener>(*tfBuffer);
-    auto sub_img = n->create_subscription<sensor_msgs::msg::Image>(IMAGE_TOPIC, rclcpp::QoS(rclcpp::KeepLast(100)), img_callback);
+    //auto sub_img = n->create_subscription<sensor_msgs::msg::Image>(IMAGE_TOPIC, rclcpp::QoS(rclcpp::KeepLast(100)), img_callback);
+    image_transport::ImageTransport it(n);
+    image_transport::Subscriber sub = it.subscribe("/camera/image_raw", 10, img_callback);
     auto sub_lidar = n->create_subscription<sensor_msgs::msg::PointCloud2>(POINT_CLOUD_TOPIC, rclcpp::QoS(rclcpp::KeepLast(100)), lidar_callback);
 
     pub_feature = n->create_publisher<sensor_msgs::msg::PointCloud>( + "/vins/feature/feature", 1000);
@@ -386,6 +426,10 @@ int main(int argc, char **argv)
     if (SHOW_TRACK)
         cv::namedWindow("vis", cv::WINDOW_NORMAL);
     */
+
+    // rclcpp::executors::MultiThreadedExecutor executor(rclcpp::ExecutorOptions(),2);
+    // executor.add_node(n);
+    // executor.spin();
     rclcpp::spin(n);
     return 0;
 }
