@@ -419,18 +419,19 @@ int main(int argc, char **argv)
     image_transport::Subscriber sub = it.subscribe("/camera/image_raw", 10, img_callback);
     auto sub_lidar = n->create_subscription<sensor_msgs::msg::PointCloud2>(POINT_CLOUD_TOPIC, rclcpp::QoS(rclcpp::KeepLast(100)), lidar_callback);
 
-    pub_feature = n->create_publisher<sensor_msgs::msg::PointCloud>( + "/vins/feature/feature", 1000);
-    pub_match = n->create_publisher<sensor_msgs::msg::Image>(PROJECT_NAME + "/vins/feature/feature_img",1000);
-    pub_restart = n->create_publisher<std_msgs::msg::Bool>(PROJECT_NAME + "/vins/feature/restart",1000);
+    pub_feature = n->create_publisher<sensor_msgs::msg::PointCloud>("/vins/feature/feature", 1000);
+    pub_match = n->create_publisher<sensor_msgs::msg::Image>("/vins/feature/feature_img",1000);
+    pub_restart = n->create_publisher<std_msgs::msg::Bool>("/vins/feature/restart",1000);
+
     /*
     if (SHOW_TRACK)
         cv::namedWindow("vis", cv::WINDOW_NORMAL);
     */
 
-    // rclcpp::executors::MultiThreadedExecutor executor(rclcpp::ExecutorOptions(),2);
-    // executor.add_node(n);
-    // executor.spin();
-    rclcpp::spin(n);
+    rclcpp::executors::MultiThreadedExecutor executor(rclcpp::ExecutorOptions(),2);
+    executor.add_node(n);
+    executor.spin();
+    //rclcpp::spin(n);
     return 0;
 }
 

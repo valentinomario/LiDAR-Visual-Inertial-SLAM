@@ -112,5 +112,5 @@ def generate_launch_description():
         feature_tracker_node,
         rviz_node,
         republish_node,
-        # robot_state_publisher
+        robot_state_publisher
     ])
