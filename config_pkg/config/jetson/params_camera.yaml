@@ -5,7 +5,7 @@ project_name: "emv_lio2"
 
 #common parameters
 imu_topic: "/livox/imu"
-imu_gravity: 1
+imu_gravity: -9.81
 
 image_topic: "/camera/image_raw"
 # should be: point_cloud_topic: "lvi_sam/lidar/deskew/cloud_deskewed"
@@ -28,29 +28,29 @@ model_type: MEI
 camera_name: camera
 
 # Mono camera config
-image_width: 640
-image_height: 360
-mirror_parameters:
-   xi: 1.9926618269451453
+image_width: 1024
+image_height: 576
+#mirror_parameters:
+#   xi: 1.9926618269451453
 distortion_parameters:
-   k1: -0.0399258932468764
-   k2: 0.15160828121223818
-   p1: 0.00017756967825777937
-   p2: -0.0011531239076798612
+   k1: -0.218607
+   k2: 0.035102
+   p1: 0.000676
+   p2: 0.001085
 projection_parameters:
-   gamma1: 669.8940458885896
-   gamma2: 669.1450614220616
-   u0: 377.9459252967363
-   v0: 279.63655686698144
+   gamma1: 398.50018
+   gamma2: 540.65521
+   u0: 625.44574
+   v0: 396.44054
 
 #fisheye_mask: "/config/fisheye_mask_720x540.jpg"
 
 #imu parameters       The more accurate parameters you provide, the worse performance
-acc_n: 0.02         # accelerometer measurement noise standard deviation.
-gyr_n: 0.01         # gyroscope measurement noise standard deviation.
-acc_w: 0.002        # accelerometer bias random work noise standard deviation.
-gyr_w: 4.0e-5       # gyroscope bias random work noise standard deviation.
-g_norm: 9.805       #
+acc_n: 3.9939570888238808e-03       # accelerometer measurement noise standard deviation.
+gyr_n: 1.5636343949698187e-03       # gyroscope measurement noise standard deviation.
+acc_w: 6.4356659353532566e-05       # accelerometer bias random work noise standard deviation.
+gyr_w: 3.5640318696367613e-05       # gyroscope bias random work noise standard deviation.
+g_norm: 9.81        #
 
 # Extrinsic parameter between IMU and Camera.
 estimate_extrinsic: 0   # 0  Have an accurate extrinsic parameters. We will trust the following imu^R_cam, imu^T_cam, don't change it.
@@ -61,9 +61,9 @@ extrinsicRotation: !!opencv-matrix
    rows: 3
    cols: 3
    dt: d
-   data: [ 0, 0, -1, 
+   data: [ 0, 0, 1, 
            -1, 0, 0, 
-           0, 1, 0]
+           0, -1, 0]
 
 #Translation from camera frame to imu frame, imu^T_cam
 extrinsicTranslation: !!opencv-matrix

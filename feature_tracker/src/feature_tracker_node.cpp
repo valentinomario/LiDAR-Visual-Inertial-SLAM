@@ -1,7 +1,7 @@
 #include "feature_tracker.h"
 
 #define SHOW_UNDISTORTION 0
-#define DEBUG_CALLBACK_FPS 1
+#define DEBUG_CALLBACK_FPS 0
 
 vector<uchar> r_status;
 vector<float> r_err;
@@ -111,6 +111,7 @@ void img_callback(const sensor_msgs::msg::Image::ConstSharedPtr img_msg)
     cv_bridge::CvImageConstPtr ptr;
     if (img_msg->encoding == "8UC1")
     {
+        // TODO: remove for our format
         sensor_msgs::msg::Image img;
         img.header = img_msg->header;
         img.height = img_msg->height;
