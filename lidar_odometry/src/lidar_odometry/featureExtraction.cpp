@@ -75,7 +75,7 @@ public:
         cloudHeader = msgIn->header; // new cloud header
         pcl::fromROSMsg(msgIn->cloud_deskewed, *extractedCloud); // new cloud for extraction
 
-        if (false){ // TODO feature_enable is always false in emv-lio
+        if (true){ // TODO feature_enable is always false in emv-lio
             calculateSmoothness();
 
             markOccludedPoints();

@@ -468,7 +468,7 @@ class IMUPreintegration : public ParamServer {
 
         Eigen::Vector3f ba(biasCur.accelerometer().x(), biasCur.accelerometer().y(), biasCur.accelerometer().z());
         Eigen::Vector3f bg(biasCur.gyroscope().x(), biasCur.gyroscope().y(), biasCur.gyroscope().z());
-        if (ba.norm() > 0.1 || bg.norm() > 0.1) {   // era 1.0 1.0
+        if (ba.norm() > 1.0 || bg.norm() > 1.0) {   // era 1.0 1.0
             RCLCPP_WARN(get_logger(), "Large bias, reset IMU-preintegration!");
             return true;
         }
