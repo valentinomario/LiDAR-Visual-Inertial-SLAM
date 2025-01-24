@@ -338,9 +338,11 @@ int main(int argc, char **argv)
     registerPub(n);
 
     auto sub_imu = n->create_subscription<sensor_msgs::msg::Imu>(IMU_TOPIC, rclcpp::QoS(rclcpp::KeepLast(5000)), imu_callback);
-    auto sub_odom = n->create_subscription<nav_msgs::msg::Odometry>("odometry/imu",rclcpp::QoS(rclcpp::KeepLast(5000)), odom_callback);
-    auto sub_image = n->create_subscription<sensor_msgs::msg::PointCloud>("/vins/feature/feature", rclcpp::QoS(rclcpp::KeepLast(2000)), feature_callback);
-    auto sub_restart = n->create_subscription<std_msgs::msg::Bool>("/vins/feature/restart", rclcpp::QoS(rclcpp::KeepLast(2000)), restart_callback);
+    auto sub_odom = n->create_subscription<nav_msgs::msg::Odometry>("odometry/imu",rclcpp::QoS(rclcpp::KeepLast(5000)).best_effort(), odom_callback);
+    auto sub_image = n->create_subscription<sensor_msgs::msg::PointCloud>("/vins/feature/feature", rclcpp::QoS(rclcpp::KeepLast(1)), feature_callback);
+    auto sub_restart = n->create_subscription<std_msgs::msg::Bool>("/vins/feature/restart", rclcpp::QoS(rclcpp::KeepLast(1)), restart_callback);
+
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "\033[1;32m----> VINS Estimator Started.\033[0m");
 
     std::thread measurement_process{process};
     rclcpp::executors::MultiThreadedExecutor executor;

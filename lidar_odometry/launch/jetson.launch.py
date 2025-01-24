@@ -28,7 +28,7 @@ def generate_launch_description():
         'support_files'
     ])
 
-    # Define the node
+    # Define the feature tracker node
     feature_tracker_node = Node(
         package='feature_tracker',
         executable='feature_tracker_exec',

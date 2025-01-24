@@ -428,6 +428,7 @@ int main(int argc, char **argv)
     if (SHOW_TRACK)
         cv::namedWindow("vis", cv::WINDOW_NORMAL);
     */
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "\033[1;32m----> VINS Feature Extraction Started.\033[0m");
 
     rclcpp::executors::MultiThreadedExecutor executor(rclcpp::ExecutorOptions(),2);
     executor.add_node(n);

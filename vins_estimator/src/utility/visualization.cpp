@@ -53,122 +53,6 @@ void registerPub(rclcpp::Node::SharedPtr n)
     keyframebasevisual.setScale(0.1);
     keyframebasevisual.setLineWidth(0.01);
 }
-/*
-void pubLatestOdometry(const Eigen::Vector3d &P, const Eigen::Quaterniond &Q, const Eigen::Vector3d &V, const std_msgs::msg::Header &header, const int& failureId)
-{
-    static double last_align_time = -1;
-
-    // Quternion not normalized
-    if (Q.x() * Q.x() + Q.y() * Q.y() + Q.z() * Q.z() + Q.w() * Q.w() < 0.99)
-        return;
-
-    nav_msgs::msg::Odometry odometry;
-    odometry.header = header;
-    odometry.header.frame_id = "vins_world";
-    odometry.child_frame_id = "vins_body";
-    odometry.pose.pose.position.x = P.x();
-    odometry.pose.pose.position.y = P.y();
-    odometry.pose.pose.position.z = P.z();
-    odometry.pose.pose.orientation.x = Q.x();
-    odometry.pose.pose.orientation.y = Q.y();
-    odometry.pose.pose.orientation.z = Q.z();
-    odometry.pose.pose.orientation.w = Q.w();
-    odometry.twist.twist.linear.x = V.x();
-    odometry.twist.twist.linear.y = V.y();
-    odometry.twist.twist.linear.z = V.z();
-    pub_latest_odometry->publish(odometry);
-
-    // imu odometry in ROS format (change rotation), used for lidar odometry initial guess
-    odometry.pose.covariance[0] = double(failureId); // notify lidar odometry failure
-
-    tf2::Quaternion q_odom_cam(Q.x(), Q.y(), Q.z(), Q.w());
-    tf2::Quaternion q_cam_to_lidar(0, 1, 0, 0); // mark: camera - lidar
-    tf2::Quaternion q_odom_ros = q_odom_cam * q_cam_to_lidar;
-    odometry.pose.pose.orientation = tf2::toMsg(q_odom_ros);
-    pub_latest_odometry_ros->publish(odometry);
-
-    // TF of camera in vins_world in ROS format (change rotation), used for depth registration
-    tf2::Transform t_w_body = tf2::Transform(q_odom_ros, tf2::Vector3(P.x(), P.y(), P.z()));
-
-    tf2::TimePoint time_point= tf2_ros::fromRclcpp(header.stamp);
-    tf2::Stamped<tf2::Transform> temp_world_vinsbody_ros(t_w_body, time_point,"vins_world");
-
-    geometry_msgs::msg::TransformStamped trans_world_vinsbody_ros;
-    tf2::convert(temp_world_vinsbody_ros, trans_world_vinsbody_ros);
-
-    trans_world_vinsbody_ros.child_frame_id="vins_body_ros";
-
-    br->sendTransform(trans_world_vinsbody_ros);
-
-    if (ALIGN_CAMERA_LIDAR_COORDINATE)
-    {
-        // static tf::Transform t_odom_world = tf::Transform(tf::createQuaternionFromRPY(0, 0, M_PI), tf::Vector3(0, 0, 0));
-
-        static tf2::Transform t_odom_world = []() {
-            tf2::Quaternion q;
-            q.setRPY(0, 0, M_PI);
-            return tf2::Transform(q, tf2::Vector3(0, 0, 0));
-        }();
-
-        if (header.stamp.sec + header.stamp.nanosec*1e-9 - last_align_time > 1.0)
-        {
-            try
-            {
-                tf2::Stamped<tf2::Transform> trans_odom_baselink;
-                tf2::fromMsg(tfBuffer->lookupTransform("odom", "base_link", rclcpp::Time(0)), trans_odom_baselink);
-
-                t_odom_world = trans_odom_baselink * temp_world_vinsbody_ros.inverse();
-                last_align_time = header.stamp.sec + header.stamp.nanosec*1e-9; // TODO: tipi modificati diversi ora
-
-            }
-            catch (tf2::TransformException& ex){}
-        }
-
-        geometry_msgs::msg::TransformStamped stamped_odom_world;
-
-        stamped_odom_world.header.stamp = header.stamp;
-        stamped_odom_world.header.frame_id = "odom";
-        stamped_odom_world.child_frame_id = "vins_world";
-
-        stamped_odom_world.transform.translation.x = t_odom_world.getOrigin().x();
-        stamped_odom_world.transform.translation.y = t_odom_world.getOrigin().y();
-        stamped_odom_world.transform.translation.z = t_odom_world.getOrigin().z();
-
-        stamped_odom_world.transform.rotation.x = t_odom_world.getRotation().x();
-        stamped_odom_world.transform.rotation.y = t_odom_world.getRotation().y();
-        stamped_odom_world.transform.rotation.z = t_odom_world.getRotation().z();
-        stamped_odom_world.transform.rotation.w = t_odom_world.getRotation().w();
-
-        br->sendTransform(stamped_odom_world);
-    }
-    else
-    {
-        geometry_msgs::msg::TransformStamped static_transform_stamped;
-
-        tf2::Transform t_static;
-        tf2::Quaternion q;
-        q.setRPY(0, 0, M_PI); // Creazione della rotazione
-        t_static.setRotation(q);
-        t_static.setOrigin(tf2::Vector3(0, 0, 0));
-
-        static_transform_stamped.header.stamp = header.stamp;
-        static_transform_stamped.header.frame_id = "odom";
-        static_transform_stamped.child_frame_id = "vins_world";
-        static_transform_stamped.transform.translation.x = t_static.getOrigin().x();
-        static_transform_stamped.transform.translation.y = t_static.getOrigin().y();
-        static_transform_stamped.transform.translation.z = t_static.getOrigin().z();
-        static_transform_stamped.transform.rotation.x = t_static.getRotation().x();
-        static_transform_stamped.transform.rotation.y = t_static.getRotation().y();
-        static_transform_stamped.transform.rotation.z = t_static.getRotation().z();
-        static_transform_stamped.transform.rotation.w = t_static.getRotation().w();
-
-        br->sendTransform(static_transform_stamped);
-
-        //  tf::Transform t_static = tf::Transform(tf::createQuaternionFromRPY(0, 0, M_PI), tf::Vector3(0, 0, 0));
-        //  br.sendTransform(tf::StampedTransform(t_static, header.stamp, "odom", "vins_world"));
-    }
-}
-*/
 
 tf2::Transform transformConversion(const geometry_msgs::msg::TransformStamped& t)
 {
@@ -233,7 +117,7 @@ void pubLatestOdometry(const Eigen::Vector3d &P, const Eigen::Quaterniond &Q, co
     {
         static tf2::Transform t_odom_world = []() {
             tf2::Quaternion q;
-            q.setRPY(0, 0, M_PI);
+            q.setRPY(0, 0, 0);
             return tf2::Transform(q, tf2::Vector3(0, 0, 0));
         }();
 
@@ -271,7 +155,7 @@ void pubLatestOdometry(const Eigen::Vector3d &P, const Eigen::Quaterniond &Q, co
 
         tf2::Transform t_static;
         tf2::Quaternion q;
-        q.setRPY(0, 0, M_PI);
+        q.setRPY(0, 0, 0);
         t_static.setRotation(q);
         t_static.setOrigin(tf2::Vector3(0, 0, 0));
 

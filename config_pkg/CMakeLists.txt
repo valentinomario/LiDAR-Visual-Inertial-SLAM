@@ -13,6 +13,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 install(DIRECTORY
   config
+  launch
   support_files
   DESTINATION share/${PROJECT_NAME}/
 )

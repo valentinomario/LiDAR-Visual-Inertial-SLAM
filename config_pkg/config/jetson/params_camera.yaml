@@ -5,7 +5,7 @@ project_name: "emv_lio2"
 
 #common parameters
 imu_topic: "/livox/imu"
-imu_gravity: -9.81
+imu_gravity: 9.81
 
 image_topic: "/camera/image_raw"
 # should be: point_cloud_topic: "lvi_sam/lidar/deskew/cloud_deskewed"
@@ -30,18 +30,18 @@ camera_name: camera
 # Mono camera config
 image_width: 1024
 image_height: 576
-#mirror_parameters:
-#   xi: 1.9926618269451453
+mirror_parameters:
+   xi: 1.40630886
 distortion_parameters:
-   k1: -0.218607
-   k2: 0.035102
-   p1: 0.000676
-   p2: 0.001085
+   k1: -0.03678799
+   k2: 0.2610374
+   p1: 0.00144626
+   p2: 0.00035872
 projection_parameters:
-   gamma1: 398.50018
-   gamma2: 540.65521
-   u0: 625.44574
-   v0: 396.44054
+   gamma1: 1454.59041
+   gamma2: 1451.94369
+   u0: 468.13404
+   v0: 318.32657
 
 #fisheye_mask: "/config/fisheye_mask_720x540.jpg"
 
@@ -53,7 +53,7 @@ gyr_w: 3.5640318696367613e-05       # gyroscope bias random work noise standard 
 g_norm: 9.81        #
 
 # Extrinsic parameter between IMU and Camera.
-estimate_extrinsic: 0   # 0  Have an accurate extrinsic parameters. We will trust the following imu^R_cam, imu^T_cam, don't change it.
+estimate_extrinsic: 1   # 0  Have an accurate extrinsic parameters. We will trust the following imu^R_cam, imu^T_cam, don't change it.
                         # 1  Have an initial guess about extrinsic parameters. We will optimize around your initial guess.
                         # 2  Don't know anything about extrinsic parameters. You don't need to give R,T. We will try to calibrate it. Do some rotation movement at beginning. 
 #Rotation from camera frame to imu frame, imu^R_cam
@@ -61,16 +61,16 @@ extrinsicRotation: !!opencv-matrix
    rows: 3
    cols: 3
    dt: d
-   data: [ 0, 0, 1, 
-           -1, 0, 0, 
-           0, -1, 0]
+   data: [-0.06402407, -0.09752301, 0.99317178, 
+          -0.99752562, 0.03521845, -0.06084651, 
+          -0.02904404, -0.99460994, -0.09953653]
 
 #Translation from camera frame to imu frame, imu^T_cam
 extrinsicTranslation: !!opencv-matrix
    rows: 3
    cols: 1
    dt: d
-   data: [0.006422381632411965, 0.019939800449065116, 0.03364235163589248]
+   data: [0.1278, -0.0248, -0.0258]
 
 #feature traker paprameters
 max_cnt: 150            # max feature number in feature tracking
