@@ -336,7 +336,7 @@ Visualization Manager:
       Name: Current View
       Near Clip Distance: 0.009999999776482582
       Pitch: 0.9203987121582031
-      Target Frame: <Fixed Frame>
+      Target Frame: vins_camera
       Value: Orbit (rviz)
       Yaw: 3.2404069900512695
     Saved: ~

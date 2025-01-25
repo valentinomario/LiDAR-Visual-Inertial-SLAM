@@ -16,12 +16,12 @@ lidar_skip: 3                    # skip this amount of scans
 align_camera_lidar_estimation: 1 # align camera and lidar estimation for visualization
 
 # lidar to camera extrinsic
-lidar_to_cam_tx: 0.05
-lidar_to_cam_ty: -0.07
-lidar_to_cam_tz: -0.07
-lidar_to_cam_rx: 0.0
-lidar_to_cam_ry: 0.0
-lidar_to_cam_rz: -0.04
+lidar_to_cam_tx: -0.1272
+lidar_to_cam_ty: 0.0248
+lidar_to_cam_tz: 0.0258
+lidar_to_cam_rx: 1.6705
+lidar_to_cam_ry: -0.0290
+lidar_to_cam_rz: 1.6348
 
 # camera model
 model_type: MEI
