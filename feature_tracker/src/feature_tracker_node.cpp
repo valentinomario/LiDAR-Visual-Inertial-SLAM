@@ -11,6 +11,9 @@ rclcpp::Publisher<sensor_msgs::msg::PointCloud>::SharedPtr pub_feature;
 rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr pub_match;
 rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr pub_restart;
 
+rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pub_debug_pointcloud;
+
+
 FeatureTracker trackerData[NUM_OF_CAM];
 double first_image_time;
 int pub_count = 1;
@@ -343,6 +346,14 @@ void lidar_callback(const sensor_msgs::msg::PointCloud2::SharedPtr laser_msg)
     }
     *laser_cloud_in = *laser_cloud_in_filter;
 
+    //DEBUG
+
+    sensor_msgs::msg::PointCloud2::SharedPtr debug_points(new sensor_msgs::msg::PointCloud2);
+    pcl::toROSMsg(*laser_cloud_in_filter, *debug_points);
+    debug_points->header.frame_id = "vins_world";
+    pub_debug_pointcloud->publish(*debug_points);
+
+
     // TODO: transform to IMU body frame
     // 4. offset T_lidar -> T_camera
     pcl::PointCloud<PointType>::Ptr laser_cloud_offset(new pcl::PointCloud<PointType>());
@@ -421,8 +432,11 @@ int main(int argc, char **argv)
     auto sub_lidar = n->create_subscription<sensor_msgs::msg::PointCloud2>(POINT_CLOUD_TOPIC, rclcpp::QoS(rclcpp::KeepLast(100)), lidar_callback);
 
     pub_feature = n->create_publisher<sensor_msgs::msg::PointCloud>("/vins/feature/feature", 1000);
+    pub_debug_pointcloud = n->create_publisher<sensor_msgs::msg::PointCloud2>("/debug/pointcloud", 1);
     pub_match = n->create_publisher<sensor_msgs::msg::Image>("/vins/feature/feature_img",1000);
     pub_restart = n->create_publisher<std_msgs::msg::Bool>("/vins/feature/restart",1000);
+
+
 
     /*
     if (SHOW_TRACK)

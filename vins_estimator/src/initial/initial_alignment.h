@@ -88,8 +88,8 @@ public:
     odometryRegister(rclcpp::Node::SharedPtr& n_in):
     n(n_in)
     {
-        q_lidar_to_cam = tf2::Quaternion(0, 1, 0, 0); // rotate orientation // mark: camera - lidar
-        q_lidar_to_cam_eigen = Eigen::Quaterniond(0, 0, 0, 1); // rotate position by pi, (w, x, y, z) // mark: camera - lidar
+        q_lidar_to_cam = tf2::Quaternion(0, 0, 0, 1); // rotate orientation // mark: camera - lidar
+        q_lidar_to_cam_eigen = Eigen::Quaterniond(1, 0, 0, 0); // rotate position by pi, (w, x, y, z) // mark: camera - lidar
         // pub_latest_odometry = n.advertise<nav_msgs::Odometry>("odometry/test", 1000);
     }
 
@@ -120,7 +120,7 @@ public:
         {
             odomCur = odomQueue[i];
 
-            if (odomCur.header.stamp.sec + odomCur.header.stamp.nanosec < img_time - 0.002) // 500Hz imu
+            if (odomCur.header.stamp.sec + odomCur.header.stamp.nanosec < img_time - 0.005) // 200Hz imu
                 continue;
             else
                 break;

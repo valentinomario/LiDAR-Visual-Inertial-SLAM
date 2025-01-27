@@ -77,6 +77,23 @@ void predict(const sensor_msgs::msg::Imu::SharedPtr imu_msg)
 
     acc_0 = linear_acceleration;
     gyr_0 = angular_velocity;
+
+    // Debug
+    Eigen::Vector3d rpy = tmp_Q.toRotationMatrix().eulerAngles(2, 1, 0)*180.0/M_PI; // ZYX: yaw, pitch, roll
+
+    // Stampa i risultati aggiornati
+    std::cout << std::endl
+              << "Updated Position: " << tmp_P.transpose() << std::endl;
+    std::cout << "Updated Velocity: " << tmp_V.transpose() << std::endl;
+    std::cout << "Updated Orientation (RPY): Roll = "
+              << rpy[2] << ", Pitch = " << rpy[1]
+              << ", Yaw = " << rpy[0] << std::endl;
+    std::cout << std::endl
+              << "Updated Acceleration Bias: " << tmp_Ba.transpose() << std::endl;
+    std::cout << "Updated Gyroscope Bias: " << tmp_Bg.transpose() << std::endl;
+    std::cout << std::endl
+              << "Estimator Gravity Vector: " << estimator.g.transpose() << std::endl;
+
 }
 
 void update()
@@ -337,7 +354,9 @@ int main(int argc, char **argv)
 
     registerPub(n);
 
-    auto sub_imu = n->create_subscription<sensor_msgs::msg::Imu>(IMU_TOPIC, rclcpp::QoS(rclcpp::KeepLast(5000)), imu_callback);
+    odomRegister = new odometryRegister(n);
+
+    auto sub_imu = n->create_subscription<sensor_msgs::msg::Imu>(IMU_TOPIC, rclcpp::QoS(rclcpp::KeepLast(5000)).best_effort(), imu_callback);
     auto sub_odom = n->create_subscription<nav_msgs::msg::Odometry>("odometry/imu",rclcpp::QoS(rclcpp::KeepLast(5000)).best_effort(), odom_callback);
     auto sub_image = n->create_subscription<sensor_msgs::msg::PointCloud>("/vins/feature/feature", rclcpp::QoS(rclcpp::KeepLast(1)), feature_callback);
     auto sub_restart = n->create_subscription<std_msgs::msg::Bool>("/vins/feature/restart", rclcpp::QoS(rclcpp::KeepLast(1)), restart_callback);
@@ -348,7 +367,6 @@ int main(int argc, char **argv)
     rclcpp::executors::MultiThreadedExecutor executor;
     executor.add_node(n);
     executor.spin();
-    // rclcpp::spin(n);
 
     return 0;
 }
