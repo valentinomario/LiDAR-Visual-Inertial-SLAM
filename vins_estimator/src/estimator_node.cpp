@@ -396,6 +396,7 @@ void process()
 
         m_buf.lock();
         m_state.lock();
+        cout<<"Got lock\n";
         if (estimator.solver_flag == Estimator::SolverFlag::NON_LINEAR)
             update();
         m_state.unlock();
