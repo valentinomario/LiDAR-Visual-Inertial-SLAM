@@ -5,7 +5,7 @@ project_name: "emv_lio2"
 
 #common parameters
 imu_topic: "/livox/imu"
-imu_gravity: -9.81
+imu_gravity: 9.81
 
 image_topic: "/camera/image_raw"
 
@@ -14,7 +14,7 @@ point_cloud_topic: "/lio_sam/deskew/cloud_deskewed"
 # Lidar Params
 use_lidar: 1                     # whether use depth info from lidar or not
 lidar_skip: 3                    # skip this amount of scans
-align_camera_lidar_estimation: 1 # align camera and lidar estimation for visualization
+align_camera_lidar_estimation: 0 # align camera and lidar estimation for visualization
 
 # lidar to camera extrinsic RPY
 lidar_to_cam_tx: 0.1278
@@ -54,7 +54,7 @@ gyr_w: 3.5640318696367613e-05       # gyroscope bias random work noise standard 
 g_norm: 9.81        #
 
 # Extrinsic parameter between IMU and Camera.
-estimate_extrinsic: 1   # 0  Have an accurate extrinsic parameters. We will trust the following imu^R_cam, imu^T_cam, don't change it.
+estimate_extrinsic: 0   # 0  Have an accurate extrinsic parameters. We will trust the following imu^R_cam, imu^T_cam, don't change it.
                         # 1  Have an initial guess about extrinsic parameters. We will optimize around your initial guess.
                         # 2  Don't know anything about extrinsic parameters. You don't need to give R,T. We will try to calibrate it. Do some rotation movement at beginning. 
 #Rotation from camera frame to imu frame, imu^R_cam
@@ -62,6 +62,9 @@ extrinsicRotation: !!opencv-matrix
    rows: 3
    cols: 3
    dt: d
+   #data: [0.0, -1.0, 0.0, 
+   #       0.0, 0.0, -1.0, 
+   #       1.0, 0.0, 0.0]
    data: [-0.06402407, -0.09752301, 0.99317178, 
           -0.99752562, 0.03521845, -0.06084651, 
           -0.02904404, -0.99460994, -0.09953653]
@@ -71,7 +74,7 @@ extrinsicTranslation: !!opencv-matrix
    rows: 3
    cols: 1
    dt: d
-   data: [-0.1278, 0.0248, 0.0258]
+   data: [0.1278, -0.0248, -0.0258]
 
 #feature traker paprameters
 max_cnt: 150            # max feature number in feature tracking

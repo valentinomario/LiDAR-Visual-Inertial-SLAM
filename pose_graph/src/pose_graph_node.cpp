@@ -537,19 +537,21 @@ int main(int argc, char **argv)
 
     fsSettings.release();
 
-    auto sub_imu_forward = n->create_subscription<nav_msgs::msg::Odometry>("/vins_estimator/imu_propagate", rclcpp::QoS(rclcpp::KeepLast(2000)), imu_forward_callback);
-    auto sub_vio = n->create_subscription<nav_msgs::msg::Odometry>("/vins_estimator/odometry", rclcpp::QoS(rclcpp::KeepLast(2000)), vio_callback);
-    auto sub_image = n->create_subscription<sensor_msgs::msg::Image>(IMAGE_TOPIC, rclcpp::QoS(rclcpp::KeepLast(2000)), image_callback);
-    auto sub_pose = n->create_subscription<nav_msgs::msg::Odometry>("/vins_estimator/keyframe_pose", rclcpp::QoS(rclcpp::KeepLast(2000)), pose_callback);
-    auto sub_extrinsic = n->create_subscription<nav_msgs::msg::Odometry>("/vins_estimator/extrinsic", rclcpp::QoS(rclcpp::KeepLast(2000)), extrinsic_callback);
-    auto sub_point = n->create_subscription<sensor_msgs::msg::PointCloud>("/vins_estimator/keyframe_point", rclcpp::QoS(rclcpp::KeepLast(2000)), point_callback);
-    auto sub_relo_relative_pose = n->create_subscription<nav_msgs::msg::Odometry>("/vins_estimator/relo_relative_pose", rclcpp::QoS(rclcpp::KeepLast(2000)), relo_relative_pose_callback);
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "\033[1;32m----> Pose Graph Started.\033[0m");
 
-    pub_match_img = n->create_publisher<sensor_msgs::msg::Image>("match_image", 1000);
-    pub_camera_pose_visual = n->create_publisher<visualization_msgs::msg::MarkerArray>("camera_pose_visual", 1000);
-    pub_key_odometrys = n->create_publisher<visualization_msgs::msg::Marker>("key_odometrys", 1000);
-    pub_vio_path = n->create_publisher<nav_msgs::msg::Path>("no_loop_path", 1000);
-    pub_match_points = n->create_publisher<sensor_msgs::msg::PointCloud>("match_points", 100);
+    auto sub_imu_forward = n->create_subscription<nav_msgs::msg::Odometry>("/vins/odometry/imu_propagate", rclcpp::QoS(rclcpp::KeepLast(3)).best_effort(), imu_forward_callback);
+    auto sub_vio = n->create_subscription<nav_msgs::msg::Odometry>("/vins/odometry/odometry", rclcpp::QoS(rclcpp::KeepLast(3)).best_effort(), vio_callback);
+    auto sub_image = n->create_subscription<sensor_msgs::msg::Image>(IMAGE_TOPIC, rclcpp::QoS(rclcpp::KeepLast(3)).best_effort(), image_callback);
+    auto sub_pose = n->create_subscription<nav_msgs::msg::Odometry>("/vins/odometry/keyframe_pose", rclcpp::QoS(rclcpp::KeepLast(3)).best_effort(), pose_callback);
+    auto sub_extrinsic = n->create_subscription<nav_msgs::msg::Odometry>("/vins/domoetry/extrinsic/extrinsic", rclcpp::QoS(rclcpp::KeepLast(3)).best_effort(), extrinsic_callback);
+    auto sub_point = n->create_subscription<sensor_msgs::msg::PointCloud>("/vins/odometry/keyframe_point", rclcpp::QoS(rclcpp::KeepLast(3)).best_effort(), point_callback);
+    // auto sub_relo_relative_pose = n->create_subscription<nav_msgs::msg::Odometry>("/vins_estimator/relo_relative_pose", rclcpp::QoS(rclcpp::KeepLast(2000)), relo_relative_pose_callback);
+
+    pub_match_img = n->create_publisher<sensor_msgs::msg::Image>("/vins/pose_graph/match_image", 3);
+    pub_camera_pose_visual = n->create_publisher<visualization_msgs::msg::MarkerArray>("/vins/pose_graph/camera_pose_visual", 3);
+    pub_key_odometrys = n->create_publisher<visualization_msgs::msg::Marker>("/vins/pose_graph/key_odometrys", 3);
+    pub_vio_path = n->create_publisher<nav_msgs::msg::Path>("/vins/pose_graph/no_loop_path", 3);
+    pub_match_points = n->create_publisher<sensor_msgs::msg::PointCloud>("/vins/pose_graph/match_points", 3);
 
     std::thread measurement_process;
     std::thread keyboard_command_process;
@@ -557,8 +559,9 @@ int main(int argc, char **argv)
     measurement_process = std::thread(process);
     keyboard_command_process = std::thread(command);
 
-
     rclcpp::spin(n);
+
+    measurement_process.join();
 
     return 0;
 }

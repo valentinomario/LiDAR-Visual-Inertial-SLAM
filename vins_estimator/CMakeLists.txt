@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(vins_estimator)
 
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 14)
 add_compile_options(-Wextra -Wpedantic)
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -Wall -g -pthread")
@@ -43,6 +43,7 @@ add_executable(vins_estimator_exec
     src/parameters.cpp
     src/estimator.cpp
     src/feature_manager.cpp
+    src/imu_tracker.cc
     src/factor/pose_local_parameterization.cpp
     src/factor/projection_factor.cpp
     src/factor/projection_td_factor.cpp

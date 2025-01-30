@@ -11,6 +11,7 @@
 #include "estimator.h"
 #include "parameters.h"
 #include "utility/visualization.h"
+#include "imu_tracker.h"
 
 
 Estimator estimator;
@@ -40,6 +41,7 @@ Eigen::Vector3d gyr_0;
 bool init_feature = 0;
 bool init_imu = 1;
 double last_imu_t = 0;
+std::shared_ptr<ImuTracker> imuTracker;
 
 void predict(const sensor_msgs::msg::Imu::SharedPtr imu_msg)
 {
@@ -48,8 +50,68 @@ void predict(const sensor_msgs::msg::Imu::SharedPtr imu_msg)
     {
         latest_time = t;
         init_imu = false;
+
+        imuTracker.reset(new ImuTracker(10.0, imu_msg->header.stamp.sec + imu_msg->header.stamp.nanosec*1e-9));
+
         return;
     }
+
+//#define MODIFIED_PREINTEGRATION
+
+#ifdef MODIFIED_PREINTEGRATION
+
+    double dt = t - latest_time;
+    latest_time = t;
+
+    double dx = imu_msg->linear_acceleration.x;
+    double dy = imu_msg->linear_acceleration.y;
+    double dz = imu_msg->linear_acceleration.z;
+    Eigen::Vector3d linear_acceleration{dx, dy, dz};
+
+    double rx = imu_msg->angular_velocity.x;
+    double ry = imu_msg->angular_velocity.y;
+    double rz = imu_msg->angular_velocity.z;
+    Eigen::Vector3d angular_velocity{rx, ry, rz};
+
+    imuTracker->Advance(imu_msg->header.stamp.sec + imu_msg->header.stamp.nanosec*1e-9);
+    imuTracker->AddImuLinearAccelerationObservation(linear_acceleration);
+    imuTracker->AddImuAngularVelocityObservation(angular_velocity);
+
+    tmp_Q = imuTracker->orientation();
+
+    Eigen::Vector3d un_acc_0 = tmp_Q * (acc_0 - tmp_Ba) - imuTracker->gravity_vector_;
+
+    Eigen::Vector3d un_gyr = 0.5 * (gyr_0 + angular_velocity) - tmp_Bg;
+    //tmp_Q = tmp_Q * Utility::deltaQ(un_gyr * dt);
+
+    Eigen::Vector3d un_acc_1 = tmp_Q * (linear_acceleration - tmp_Ba) - imuTracker->gravity_vector_;
+
+    Eigen::Vector3d un_acc = 0.5 * (un_acc_0 + un_acc_1);
+
+    tmp_P = tmp_P + dt * tmp_V + 0.5 * dt * dt * un_acc;
+    tmp_V = tmp_V + dt * un_acc;
+
+    acc_0 = linear_acceleration;
+    gyr_0 = angular_velocity;
+
+    // Debug
+    Eigen::Vector3d rpy = tmp_Q.toRotationMatrix().eulerAngles(2, 1, 0)*180.0/M_PI;
+    std::cout << "dt: " << dt << std::endl;
+    std::cout << "dx, dy, dz: " << dx << " " << dy << " " << dz << std::endl;
+    std::cout << std::endl
+              << "Updated Position: " << tmp_P.transpose() << std::endl;
+    std::cout << "Updated Velocity: " << tmp_V.transpose() << std::endl;
+    std::cout << "Updated Orientation (RPY): Roll = "
+              << rpy[2] << ", Pitch = " << rpy[1]
+              << ", Yaw = " << rpy[0] << std::endl;
+    std::cout << std::endl
+              << "Updated Acceleration Bias: " << tmp_Ba.transpose() << std::endl;
+    std::cout << "Updated Gyroscope Bias: " << tmp_Bg.transpose() << std::endl;
+    std::cout << std::endl
+              << "Estimator Gravity Vector: " << imuTracker->gravity_vector_.transpose() << std::endl;
+
+#else // MODIFIED_PREINTEGRATION
+
     double dt = t - latest_time;
     latest_time = t;
 
@@ -79,25 +141,27 @@ void predict(const sensor_msgs::msg::Imu::SharedPtr imu_msg)
     gyr_0 = angular_velocity;
 
     // Debug
-    Eigen::Vector3d rpy = tmp_Q.toRotationMatrix().eulerAngles(2, 1, 0)*180.0/M_PI; // ZYX: yaw, pitch, roll
-
-    // Stampa i risultati aggiornati
-    std::cout << std::endl
-              << "Updated Position: " << tmp_P.transpose() << std::endl;
-    std::cout << "Updated Velocity: " << tmp_V.transpose() << std::endl;
-    std::cout << "Updated Orientation (RPY): Roll = "
-              << rpy[2] << ", Pitch = " << rpy[1]
-              << ", Yaw = " << rpy[0] << std::endl;
-    std::cout << std::endl
-              << "Updated Acceleration Bias: " << tmp_Ba.transpose() << std::endl;
-    std::cout << "Updated Gyroscope Bias: " << tmp_Bg.transpose() << std::endl;
-    std::cout << std::endl
-              << "Estimator Gravity Vector: " << estimator.g.transpose() << std::endl;
-
+     // Eigen::Vector3d rpy = tmp_Q.toRotationMatrix().eulerAngles(2, 1, 0)*180.0/M_PI;
+     //       std::cout << "dt: " << dt << std::endl;
+     // std::cout << "dx, dy, dz: " << dx << " " << dy << " " << dz << std::endl;
+     // std::cout << std::endl
+     //           << "Updated Position: " << tmp_P.transpose() << std::endl;
+     // std::cout << "Updated Velocity: " << tmp_V.transpose() << std::endl;
+     // std::cout << "Updated Orientation (RPY): Roll = "
+     //           << rpy[2] << ", Pitch = " << rpy[1]
+     //           << ", Yaw = " << rpy[0] << std::endl;
+     // std::cout << std::endl
+     //           << "Updated Acceleration Bias: " << tmp_Ba.transpose() << std::endl;
+     // std::cout << "Updated Gyroscope Bias: " << tmp_Bg.transpose() << std::endl;
+     // if (estimator.g.norm()>0.01)
+     //     std::cout << std::endl
+     //              << "Estimator Gravity Vector: " << estimator.g.transpose() << std::endl;
+#endif
 }
 
 void update()
 {
+    cout<<"updating prediction";
     TicToc t_predict;
     latest_time = current_time;
     tmp_P = estimator.Ps[WINDOW_SIZE];

@@ -139,7 +139,7 @@ public:
         // tf2::Quaternion q_odom_cam = tf2::createQuaternionFromRPY(0, 0, M_PI) * (q_odom_lidar * q_lidar_to_cam); // global rotate by pi // mark: camera - lidar
 
         tf2::Quaternion q_odom_cam;
-        q_odom_cam.setRPY(0, 0, M_PI); // (TODO: check porting)  global rotate by pi // mark: camera - lidar
+        q_odom_cam.setRPY(0, 0, 0); // era M_PI (TODO: check porting)  global rotate by pi // mark: camera - lidar
         q_odom_cam *= (q_odom_lidar * q_lidar_to_cam);
         odomCur.pose.pose.orientation = tf2::toMsg(q_odom_cam);
 

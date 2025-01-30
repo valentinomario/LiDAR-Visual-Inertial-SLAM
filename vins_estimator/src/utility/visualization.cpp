@@ -96,7 +96,7 @@ void pubLatestOdometry(const Eigen::Vector3d &P, const Eigen::Quaterniond &Q, co
     odometry.pose.covariance[0] = double(failureId); // notify lidar odometry failure
 
     tf2::Quaternion q_odom_cam(Q.x(), Q.y(), Q.z(), Q.w());
-    tf2::Quaternion q_cam_to_lidar(0, 1, 0, 0); // mark: camera - lidar
+    tf2::Quaternion q_cam_to_lidar(0, 0, 0, 1); // mark: camera - lidar // Un altro
     tf2::Quaternion q_odom_ros = q_odom_cam * q_cam_to_lidar;
 
     odometry.pose.pose.orientation = tf2::toMsg(q_odom_ros);
