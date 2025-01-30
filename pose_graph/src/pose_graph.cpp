@@ -137,7 +137,7 @@ void PoseGraph::addKeyFrame(KeyFrame* cur_kf, bool flag_detect_loop)
     Quaterniond Q{R};
     geometry_msgs::msg::PoseStamped pose_stamped;
     pose_stamped.header.stamp = rclcpp::Time(cur_kf->time_stamp);
-    pose_stamped.header.frame_id = "world";
+    pose_stamped.header.frame_id = "vins_world";
     pose_stamped.pose.position.x = P.x() + VISUALIZATION_SHIFT_X;
     pose_stamped.pose.position.y = P.y() + VISUALIZATION_SHIFT_Y;
     pose_stamped.pose.position.z = P.z();
@@ -241,7 +241,7 @@ void PoseGraph::loadKeyFrame(KeyFrame* cur_kf, bool flag_detect_loop)
     Quaterniond Q{R};
     geometry_msgs::msg::PoseStamped pose_stamped;
     pose_stamped.header.stamp = rclcpp::Time(cur_kf->time_stamp);
-    pose_stamped.header.frame_id = "world";
+    pose_stamped.header.frame_id = "vins_world";
     pose_stamped.pose.position.x = P.x() + VISUALIZATION_SHIFT_X;
     pose_stamped.pose.position.y = P.y() + VISUALIZATION_SHIFT_Y;
     pose_stamped.pose.position.z = P.z();
@@ -606,7 +606,7 @@ void PoseGraph::updatePath()
 
         geometry_msgs::msg::PoseStamped pose_stamped;
         pose_stamped.header.stamp = rclcpp::Time((*it)->time_stamp);
-        pose_stamped.header.frame_id = "world";
+        pose_stamped.header.frame_id = "vins_world";
         pose_stamped.pose.position.x = P.x() + VISUALIZATION_SHIFT_X;
         pose_stamped.pose.position.y = P.y() + VISUALIZATION_SHIFT_Y;
         pose_stamped.pose.position.z = P.z();
@@ -881,7 +881,7 @@ void PoseGraph::publish()
             posegraph_visualization->publish_by(pub_pose_graph, path[sequence_cnt].header);
         }
     }
-    base_path.header.frame_id = "world";
+    base_path.header.frame_id = "vins_world";
     pub_base_path->publish(base_path);
     //posegraph_visualization->publish_by(pub_pose_graph, path[sequence_cnt].header);
 }

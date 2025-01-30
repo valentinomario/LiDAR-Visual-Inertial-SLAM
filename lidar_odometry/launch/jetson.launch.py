@@ -98,7 +98,7 @@ def generate_launch_description():
         # LogInfo(msg=['[vins estimator launch] vins path: ', vins_path]),
         # LogInfo(msg=['[vins estimator launch] support path: ', support_path]),
         vins_estimator_node,
-        #pose_graph_node,
+        pose_graph_node,
         feature_tracker_node,
         rviz_node,
         robot_state_publisher

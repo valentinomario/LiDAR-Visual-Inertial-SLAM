@@ -436,6 +436,10 @@ int main(int argc, char **argv)
     pub_match = n->create_publisher<sensor_msgs::msg::Image>("/vins/feature/feature_img",1000);
     pub_restart = n->create_publisher<std_msgs::msg::Bool>("/vins/feature/restart",1000);
 
+    // pub_feature = n->create_publisher<sensor_msgs::msg::PointCloud>("/feature_tracker/feature", 1000);
+    // pub_debug_pointcloud = n->create_publisher<sensor_msgs::msg::PointCloud2>("/debug/pointcloud", 1);
+    // pub_match = n->create_publisher<sensor_msgs::msg::Image>("/feature_tracker/feature_img",1000);
+    // pub_restart = n->create_publisher<std_msgs::msg::Bool>("/feature_tracker/restart",1000);
 
 
     /*
