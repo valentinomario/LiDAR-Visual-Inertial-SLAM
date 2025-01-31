@@ -348,10 +348,10 @@ void lidar_callback(const sensor_msgs::msg::PointCloud2::SharedPtr laser_msg)
 
     //DEBUG
 
-    sensor_msgs::msg::PointCloud2::SharedPtr debug_points(new sensor_msgs::msg::PointCloud2);
-    pcl::toROSMsg(*laser_cloud_in_filter, *debug_points);
-    debug_points->header.frame_id = "vins_world";
-    pub_debug_pointcloud->publish(*debug_points);
+    // sensor_msgs::msg::PointCloud2::SharedPtr debug_points(new sensor_msgs::msg::PointCloud2);
+    // pcl::toROSMsg(*laser_cloud_in_filter, *debug_points);
+    // debug_points->header.frame_id = "vins_body";
+    // pub_debug_pointcloud->publish(*debug_points);
 
 
     // TODO: transform to IMU body frame

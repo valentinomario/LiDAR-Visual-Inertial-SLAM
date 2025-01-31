@@ -346,7 +346,7 @@ public:
 
         imuDeskewInfo();
 
-        // odomDeskewInfo();
+        odomDeskewInfo();
 
         return true;
     }

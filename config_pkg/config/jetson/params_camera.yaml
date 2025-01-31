@@ -5,7 +5,7 @@ project_name: "emv_lio2"
 
 #common parameters
 imu_topic: "/livox/imu"
-imu_gravity: 9.81
+imu_gravity: 9.806
 
 image_topic: "/camera/image_raw"
 
@@ -47,11 +47,11 @@ projection_parameters:
 #fisheye_mask: "/config/fisheye_mask_720x540.jpg"
 
 #imu parameters       The more accurate parameters you provide, the worse performance
-acc_n: 3.9939570888238808e-03       # accelerometer measurement noise standard deviation.
-gyr_n: 1.5636343949698187e-03       # gyroscope measurement noise standard deviation.
-acc_w: 6.4356659353532566e-05       # accelerometer bias random work noise standard deviation.
-gyr_w: 3.5640318696367613e-05       # gyroscope bias random work noise standard deviation.
-g_norm: 9.81        #
+acc_n: 3.9939570888238808e-01       # accelerometer measurement noise standard deviation.
+gyr_n: 1.5636343949698187e-01       # gyroscope measurement noise standard deviation.
+acc_w: 6.4356659353532566e-03       # accelerometer bias random work noise standard deviation.
+gyr_w: 3.5640318696367613e-03       # gyroscope bias random work noise standard deviation.
+g_norm: 9.806        #
 
 # Extrinsic parameter between IMU and Camera.
 estimate_extrinsic: 0   # 0  Have an accurate extrinsic parameters. We will trust the following imu^R_cam, imu^T_cam, don't change it.
