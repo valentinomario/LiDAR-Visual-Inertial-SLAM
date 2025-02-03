@@ -8,6 +8,10 @@
 #include <rcutils/logging_macros.h>
 
 #include <opencv2/opencv.hpp>
+#include <opencv2/cudaoptflow.hpp>
+#include <opencv2/cudaimgproc.hpp>
+#include <opencv2/cudaarithm.hpp>
+
 #include <eigen3/Eigen/Dense>
 #include <sensor_msgs/msg/channel_float32.hpp>
 #include <geometry_msgs/msg/point32.hpp>

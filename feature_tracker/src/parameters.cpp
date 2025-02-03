@@ -5,6 +5,9 @@ std::string IMU_TOPIC;
 std::string POINT_CLOUD_TOPIC;
 std::string PROJECT_NAME;
 
+bool USE_GPU;
+bool USE_GPU_ACCELERATED_FLOW;
+
 std::vector<std::string> CAM_NAMES;
 std::string FISHEYE_MASK;
 int MAX_CNT;
@@ -33,12 +36,7 @@ int LIDAR_SKIP;
 
 template <typename T>
 T readParam(rclcpp::Node::SharedPtr n, std::string name)
-{
-    T ans;
-    std::string default_value = "";
-    n->declare_parameter<std::string>(name, default_value);
-    if (n->get_parameter(name, ans))
-    {
+{USE_GPU_ACCELERATED_FLOW
         RCLCPP_INFO_STREAM(n->get_logger(), "Loaded " << name << ": " << ans);
     }
     else
@@ -62,6 +60,9 @@ void readParameters(rclcpp::Node::SharedPtr &n)
     std::string VINS_FOLDER_PATH = readParam<std::string>(n, "vins_folder");
     fsSettings["project_name"] >> PROJECT_NAME;
     fsSettings["point_cloud_topic"] >> POINT_CLOUD_TOPIC;
+
+    fsSettings["use_gpu"] >> USE_GPU;
+    fsSettings["use_gpu_accelerated_flow"] >> USE_GPU_ACCELERATED_FLOW;
 
     // lidar configurations
     fsSettings["use_lidar"] >> USE_LIDAR;

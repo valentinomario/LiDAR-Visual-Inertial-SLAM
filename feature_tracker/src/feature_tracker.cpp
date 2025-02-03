@@ -109,8 +109,32 @@ void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time)
     {
         TicToc t_o;
         vector<uchar> status;
-        vector<float> err;
-        cv::calcOpticalFlowPyrLK(cur_img, forw_img, cur_pts, forw_pts, status, err, cv::Size(21, 21), 3);
+        if (!USE_GPU_ACCELERATED_FLOW)
+        {
+            vector<float> err;
+            cv::calcOpticalFlowPyrLK(cur_img, forw_img, cur_pts, forw_pts, status, err, cv::Size(21, 21), 3);
+        }
+        else
+        {
+            // TODO: changed prev->cur, cur->forw
+            cv::cuda::GpuMat cur_gpu_img(cur_img);
+            cv::cuda::GpuMat forw_gpu_img(forw_img);
+            cv::cuda::GpuMat cur_gpu_pts(cur_pts);
+            cv::cuda::GpuMat forw_gpu_pts(forw_pts);
+            cv::cuda::GpuMat gpu_status;
+
+            cv::Ptr<cv::cuda::SparsePyrLKOpticalFlow> d_pyrLK_sparse = cv::cuda::SparsePyrLKOpticalFlow::create(
+                                                                            cv::Size(21, 21), 3, 30, false);
+            d_pyrLK_sparse->calc(cur_gpu_img, forw_gpu_img, cur_gpu_pts, forw_gpu_pts, gpu_status);
+
+            vector<cv::Point2f> tmp1_forw_pts(forw_gpu_pts.cols);
+            forw_gpu_pts.download(tmp1_forw_pts);
+            forw_pts = tmp1_forw_pts;
+
+            vector<uchar> tmp1_status(gpu_status.cols);
+            gpu_status.download(tmp1_status);
+            status = tmp1_status;
+        }
 
         for (int i = 0; i < int(forw_pts.size()); i++)
             if (status[i] && !inBorder(forw_pts[i]))
@@ -130,27 +154,41 @@ void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time)
     if (PUB_THIS_FRAME)
     {
         rejectWithF();
-        RCUTILS_LOG_DEBUG("set mask begins");
         TicToc t_m;
         setMask();
-        RCUTILS_LOG_DEBUG("set mask costs %fms", t_m.toc());
 
-        RCUTILS_LOG_DEBUG("detect feature begins");
         TicToc t_t;
         int n_max_cnt = MAX_CNT - static_cast<int>(forw_pts.size());
-        if (n_max_cnt > 0)
+        if (!USE_GPU)
         {
-            if(mask.empty())
-                RCUTILS_LOG_INFO("mask is empty ");
-            if (mask.type() != CV_8UC1)
-                RCUTILS_LOG_INFO("mask type wrong ");
-            if (mask.size() != forw_img.size())
-                RCUTILS_LOG_INFO("wrong size ");
-            cv::goodFeaturesToTrack(forw_img, n_pts, MAX_CNT - forw_pts.size(), 0.01, MIN_DIST, mask);
+            if (n_max_cnt > 0)
+            {
+                cv::goodFeaturesToTrack(forw_img, n_pts, MAX_CNT - forw_pts.size(), 0.01, MIN_DIST, mask);
+            }
+
+            else
+                n_pts.clear();
         }
         else
-            n_pts.clear();
-        RCUTILS_LOG_DEBUG("detect feature costs: %fms", t_t.toc());
+        {
+            if (n_max_cnt > 0)
+            {
+                cv::cuda::GpuMat forw_gpu_img(forw_img);
+                cv::cuda::GpuMat d_curPts;
+
+                cv::cuda::GpuMat gpu_mask(mask);
+
+                cv::Ptr<cv::cuda::CornersDetector> detector = cv::cuda::createGoodFeaturesToTrackDetector(forw_gpu_img.type(), MAX_CNT - forw_pts.size(), 0.01, MIN_DIST);
+                detector->detect(forw_gpu_img, d_curPts, gpu_mask);
+
+                if(!d_curPts.empty())
+                    n_pts = cv::Mat_<cv::Point2f>(cv::Mat(d_curPts));
+                else
+                    n_pts.clear();
+            }
+            else
+                n_pts.clear();
+        }
 
         RCUTILS_LOG_DEBUG("add feature begins");
         TicToc t_a;

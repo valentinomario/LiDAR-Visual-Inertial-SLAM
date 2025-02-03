@@ -38,6 +38,9 @@ extern std::string IMAGE_TOPIC;
 extern std::string IMU_TOPIC;
 extern std::string POINT_CLOUD_TOPIC;
 
+extern bool USE_GPU;
+extern bool USE_GPU_ACCELERATED_FLOW;
+
 extern int USE_LIDAR;
 extern int LIDAR_SKIP;
 
