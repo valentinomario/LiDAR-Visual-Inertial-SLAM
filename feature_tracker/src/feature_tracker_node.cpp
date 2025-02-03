@@ -267,30 +267,7 @@ void img_callback(const sensor_msgs::msg::Image::ConstSharedPtr img_msg)
     // RCUTILS_LOG_INFO("whole feature tracker processing costs: %fms", t_r.toc());
 }
 
-/* TODO: remove, we don't use the cloud coming from the lidar here but from a LIO node
-void moveFromCustomMsg(const livox_ros_driver2::msg::CustomMsg::SharedPtr& laserCloudMsg, pcl::PointCloud<PointType>& outCloud )
-{
-    outCloud.clear();
-    outCloud.reserve(laserCloudMsg->point_num);
-    PointType point;
 
-    outCloud.header.frame_id=laserCloudMsg->header.frame_id;
-    outCloud.header.stamp = (uint64_t)((laserCloudMsg->header.stamp.sec*1e9 + laserCloudMsg->header.stamp.nanosec)/1000) ;
-    // cloud.header.seq=Msg.header.seq;
-
-    for(uint i=0;i<laserCloudMsg->point_num-1;i++)
-    {
-        point.x=laserCloudMsg->points[i].x;
-        point.y=laserCloudMsg->points[i].y;
-        point.z=laserCloudMsg->points[i].z;
-        point.intensity=laserCloudMsg->points[i].reflectivity;
-        //point.tag=Msg.points[i].tag;
-        // point.time=Msg.points[i].offset_time*1e-9;
-        // point.ring=Msg.points[i].line;
-        outCloud.push_back(point);
-    }
-}
-*/
 void lidar_callback(const sensor_msgs::msg::PointCloud2::SharedPtr laser_msg)
 {
     static int lidar_count = -1;
@@ -346,24 +323,24 @@ void lidar_callback(const sensor_msgs::msg::PointCloud2::SharedPtr laser_msg)
     }
     *laser_cloud_in = *laser_cloud_in_filter;
 
-    //DEBUG
-
-    // sensor_msgs::msg::PointCloud2::SharedPtr debug_points(new sensor_msgs::msg::PointCloud2);
-    // pcl::toROSMsg(*laser_cloud_in_filter, *debug_points);
-    // debug_points->header.frame_id = "vins_body";
-    // pub_debug_pointcloud->publish(*debug_points);
-
-
     // TODO: transform to IMU body frame
     // 4. offset T_lidar -> T_camera
-    pcl::PointCloud<PointType>::Ptr laser_cloud_offset(new pcl::PointCloud<PointType>());
-    Eigen::Affine3f transOffset = pcl::getTransformation(L_C_TX, L_C_TY, L_C_TZ, L_C_RX, L_C_RY, L_C_RZ);
-    pcl::transformPointCloud(*laser_cloud_in, *laser_cloud_offset, transOffset);
-    *laser_cloud_in = *laser_cloud_offset;
+    //pcl::PointCloud<PointType>::Ptr laser_cloud_offset(new pcl::PointCloud<PointType>());
+    //Eigen::Affine3f transOffset = pcl::getTransformation(L_C_TX, L_C_TY, L_C_TZ, L_C_RX, L_C_RY, L_C_RZ);
+    //pcl::transformPointCloud(*laser_cloud_in, *laser_cloud_offset, transOffset);
+    //*laser_cloud_in = *laser_cloud_offset;
 
     // 5. transform new cloud into global odom frame
     pcl::PointCloud<PointType>::Ptr laser_cloud_global(new pcl::PointCloud<PointType>());
     pcl::transformPointCloud(*laser_cloud_in, *laser_cloud_global, transNow);
+
+    //DEBUG
+
+    sensor_msgs::msg::PointCloud2::SharedPtr debug_points(new sensor_msgs::msg::PointCloud2);
+    pcl::toROSMsg(*laser_cloud_global, *debug_points);
+    debug_points->header.frame_id = "vins_world";
+    pub_debug_pointcloud->publish(*debug_points);
+
 
     // 6. save new cloud
     double timeScanCur = laser_msg->header.stamp.sec + laser_msg->header.stamp.nanosec*1e-9;
