@@ -36,7 +36,13 @@ int LIDAR_SKIP;
 
 template <typename T>
 T readParam(rclcpp::Node::SharedPtr n, std::string name)
-{USE_GPU_ACCELERATED_FLOW
+{
+    T ans;
+
+    std::string default_value = "";
+    n->declare_parameter<std::string>(name, default_value);
+    if (n->get_parameter(name, ans))
+    {
         RCLCPP_INFO_STREAM(n->get_logger(), "Loaded " << name << ": " << ans);
     }
     else
