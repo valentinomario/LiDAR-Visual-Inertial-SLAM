@@ -888,13 +888,9 @@ void Estimator::optimization()
             }
         }
 
-        TicToc t_pre_margin;
         marginalization_info->preMarginalize();
-        RCUTILS_LOG_DEBUG("pre marginalization %f ms", t_pre_margin.toc());
         
-        TicToc t_margin;
         marginalization_info->marginalize();
-        RCUTILS_LOG_DEBUG("marginalization %f ms", t_margin.toc());
 
         std::unordered_map<long, double *> addr_shift;
         for (int i = 1; i <= WINDOW_SIZE; i++)
@@ -942,15 +938,9 @@ void Estimator::optimization()
                 marginalization_info->addResidualBlockInfo(residual_block_info);
             }
 
-            TicToc t_pre_margin;
-            RCUTILS_LOG_DEBUG("begin marginalization");
             marginalization_info->preMarginalize();
-            RCUTILS_LOG_DEBUG("end pre marginalization, %f ms", t_pre_margin.toc());
 
-            TicToc t_margin;
-            RCUTILS_LOG_DEBUG("begin marginalization");
             marginalization_info->marginalize();
-            RCUTILS_LOG_DEBUG("end marginalization, %f ms", t_margin.toc());
             
             std::unordered_map<long, double *> addr_shift;
             for (int i = 0; i <= WINDOW_SIZE; i++)
@@ -987,7 +977,6 @@ void Estimator::optimization()
 
 void Estimator::slideWindow()
 {
-    TicToc t_margin;
     if (marginalization_flag == MARGIN_OLD)
     {
         double t_0 = Headers[0].stamp.sec + Headers[0].stamp.nanosec * (1e-9);

@@ -161,7 +161,6 @@ void predict(const sensor_msgs::msg::Imu::SharedPtr imu_msg)
 
 void update()
 {
-    TicToc t_predict;
     latest_time = current_time;
     tmp_P = estimator.Ps[WINDOW_SIZE];
     tmp_Q = estimator.Rs[WINDOW_SIZE];
@@ -352,7 +351,6 @@ void process()
 
             // 2. VINS Optimization
 
-            TicToc t_s;
             map<int, vector<pair<int, Eigen::Matrix<double, 8, 1>>>> image;
             for (unsigned int i = 0; i < img_msg->points.size(); i++)
             {

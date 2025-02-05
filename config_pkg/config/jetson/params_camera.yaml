@@ -9,8 +9,8 @@ imu_gravity: 9.806
 
 image_topic: "/camera/image_raw"
 
-use_gpu: false
-use_gpu_accelerated_flow: false
+use_gpu: true
+use_gpu_accelerated_flow: true
 
 point_cloud_topic: "/lio_sam/deskew/cloud_deskewed"
 #point_cloud_topic: "/livox/lidar"

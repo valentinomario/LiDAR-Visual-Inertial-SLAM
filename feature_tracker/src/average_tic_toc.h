@@ -4,10 +4,10 @@
 #include <cstdlib>
 #include <chrono>
 
-class TicToc
+class AverageTicToc
 {
   public:
-    TicToc()
+    AverageTicToc()
     {
         tic();
     }
@@ -17,13 +17,23 @@ class TicToc
         start = std::chrono::system_clock::now();
     }
 
-    double toc()
+    void toc()
     {
+
         end = std::chrono::system_clock::now();
         std::chrono::duration<double> elapsed_seconds = end - start;
-        return elapsed_seconds.count() * 1000;
+        total_time+=elapsed_seconds.count()*1000;
+        count++;
+    }
+
+    double get_average_time()
+    {
+        if (count == 0) return 0.0;
+        return total_time/count;
     }
 
   private:
     std::chrono::time_point<std::chrono::system_clock> start, end;
+    double total_time = 0.0;
+    int count = 0;
 };

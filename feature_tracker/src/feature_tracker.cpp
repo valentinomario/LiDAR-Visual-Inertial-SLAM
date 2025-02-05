@@ -81,15 +81,12 @@ void FeatureTracker::addPoints()
 void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time)
 {
     cv::Mat img;
-    TicToc t_r;
     cur_time = _cur_time;
 
     if (EQUALIZE)
     {
         cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(3.0, cv::Size(8, 8));
-        TicToc t_c;
         clahe->apply(_img, img);
-        RCUTILS_LOG_DEBUG("CLAHE costs: %fms", t_c.toc());
     }
     else
         img = _img;
@@ -107,7 +104,8 @@ void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time)
 
     if (cur_pts.size() > 0)
     {
-        TicToc t_o;
+        static AverageTicToc t_o;
+        t_o.tic();
         vector<uchar> status;
         if (!USE_GPU_ACCELERATED_FLOW)
         {
@@ -116,7 +114,6 @@ void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time)
         }
         else
         {
-            // TODO: changed prev->cur, cur->forw
             cv::cuda::GpuMat cur_gpu_img(cur_img);
             cv::cuda::GpuMat forw_gpu_img(forw_img);
             cv::cuda::GpuMat cur_gpu_pts(cur_pts);
@@ -145,7 +142,8 @@ void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time)
         reduceVector(ids, status);
         reduceVector(cur_un_pts, status);
         reduceVector(track_cnt, status);
-        RCUTILS_LOG_DEBUG("temporal optical flow costs: %fms", t_o.toc());
+        t_o.toc();
+        RCUTILS_LOG_INFO("temporal optical flow costs: %fms", t_o.get_average_time());
     }
 
     for (auto &n : track_cnt)
@@ -154,10 +152,11 @@ void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time)
     if (PUB_THIS_FRAME)
     {
         rejectWithF();
-        TicToc t_m;
         setMask();
 
-        TicToc t_t;
+        static AverageTicToc t_t;
+
+        t_t.tic();
         int n_max_cnt = MAX_CNT - static_cast<int>(forw_pts.size());
         if (!USE_GPU)
         {
@@ -189,12 +188,12 @@ void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time)
             else
                 n_pts.clear();
         }
+        t_t.toc();
+        RCUTILS_LOG_INFO("feature tracker costs: %fms", t_t.get_average_time());
 
-        RCUTILS_LOG_DEBUG("add feature begins");
-        TicToc t_a;
+
+        //RCUTILS_LOG_INFO("add feature begins");
         addPoints();
-
-        RCUTILS_LOG_DEBUG("selectFeature costs: %fms", t_a.toc());
     }
     prev_img = cur_img;
     prev_pts = cur_pts;
@@ -210,7 +209,7 @@ void FeatureTracker::rejectWithF()
     if (forw_pts.size() >= 8)
     {
         RCUTILS_LOG_DEBUG("FM ransac begins");
-        TicToc t_f;
+        AverageTicToc t_f;
         vector<cv::Point2f> un_cur_pts(cur_pts.size()), un_forw_pts(forw_pts.size());
         for (unsigned int i = 0; i < cur_pts.size(); i++)
         {

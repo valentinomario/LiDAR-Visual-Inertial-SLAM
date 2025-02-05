@@ -26,7 +26,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 #include "parameters.h"
-#include "tic_toc.h"
+#include "average_tic_toc.h"
 
 using namespace std;
 using namespace camodocal;

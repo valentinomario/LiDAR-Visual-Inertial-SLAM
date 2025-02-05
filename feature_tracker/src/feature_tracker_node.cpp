@@ -131,7 +131,8 @@ void img_callback(const sensor_msgs::msg::Image::ConstSharedPtr img_msg)
     cv::Mat show_img = ptr->image;
     // cv::imshow("img", show_img);
     // cv::waitKey(0);
-    TicToc t_r;
+    static AverageTicToc t_r;
+    t_r.tic();
     for (int i = 0; i < NUM_OF_CAM; i++)
     {
         RCUTILS_LOG_DEBUG("processing camera %d", i);
@@ -264,7 +265,8 @@ void img_callback(const sensor_msgs::msg::Image::ConstSharedPtr img_msg)
             pub_match->publish(*(ptr->toImageMsg()));
         }
     }
-    // RCUTILS_LOG_INFO("whole feature tracker processing costs: %fms", t_r.toc());
+    t_r.toc();
+    RCUTILS_LOG_INFO("whole feature tracker processing costs: %fms", t_r.get_average_time());
 }
 
 
