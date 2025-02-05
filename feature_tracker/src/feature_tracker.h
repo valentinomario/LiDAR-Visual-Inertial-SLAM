@@ -8,9 +8,12 @@
 #include <rcutils/logging_macros.h>
 
 #include <opencv2/opencv.hpp>
+
+#ifdef CUDA_AVAILABLE
 #include <opencv2/cudaoptflow.hpp>
 #include <opencv2/cudaimgproc.hpp>
 #include <opencv2/cudaarithm.hpp>
+#endif
 
 #include <eigen3/Eigen/Dense>
 #include <sensor_msgs/msg/channel_float32.hpp>

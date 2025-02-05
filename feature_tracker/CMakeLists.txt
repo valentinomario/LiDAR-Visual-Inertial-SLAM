@@ -27,6 +27,13 @@ find_package(OpenCV 4 REQUIRED)
 find_package(camera_model REQUIRED)
 find_package(livox_ros_driver2 REQUIRED)
 
+# Check cuda compatibility
+if(OpenCV_CUDA_VERSION)
+    message(STATUS "Found CUDA support for OpenCV")
+    add_definitions(-DCUDA_AVAILABLE)
+endif()
+
+
 include_directories("../camera_model/include")
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
