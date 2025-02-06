@@ -1,7 +1,7 @@
 #include "feature_tracker.h"
 
 #define SHOW_UNDISTORTION 0
-#define DEBUG_CALLBACK_FPS 0
+#define DEBUG_CALLBACK_FPS 1
 
 vector<uchar> r_status;
 vector<float> r_err;
@@ -91,7 +91,7 @@ void img_callback(const sensor_msgs::msg::Image::ConstSharedPtr img_msg)
         double avg_fps = std::accumulate(fps_values.begin(), fps_values.end(), 0.0) / fps_values.size();
         double camera_avg_fps = std::accumulate(camera_fps_values.begin(), camera_fps_values.end(), 0.0) / camera_fps_values.size();
 
-        RCLCPP_INFO(rclcpp::get_logger("image_subscriber"), "Callback rate/FPS: %.2f/%.2f ", avg_fps, camera_avg_fps);
+        RCLCPP_INFO(rclcpp::get_logger("image_subscriber"), "Callback rate/FPS: %.2f/%.2f - %f", avg_fps, camera_avg_fps, cur_img_time);
     }
 #endif
 
@@ -266,7 +266,7 @@ void img_callback(const sensor_msgs::msg::Image::ConstSharedPtr img_msg)
         }
     }
     t_r.toc();
-    RCUTILS_LOG_INFO("whole feature tracker processing costs: %fms", t_r.get_average_time());
+    //RCUTILS_LOG_INFO("whole feature tracker processing costs: %fms", t_r.get_average_time());
 }
 
 
@@ -433,7 +433,3 @@ int main(int argc, char **argv)
     //rclcpp::spin(n);
     return 0;
 }
-
-
-// new points velocity is 0, pub or not?
-// track cnt > 1 pub?
