@@ -74,10 +74,7 @@ def generate_launch_description():
         parameters=[{
             'config_file': config_path,
             'support_file': support_path,
-            'visualization_shift_x': 0,
-            'visualization_shift_y': 0,
-            'skip_cnt': 0,
-            'skip_dis': 0.0
+            'config_pkg_path': config_pkg_path
         }]
     )
 

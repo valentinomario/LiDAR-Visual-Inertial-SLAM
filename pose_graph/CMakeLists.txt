@@ -30,9 +30,9 @@ find_package(Eigen3)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
 
-add_executable(pose_graph
+add_executable(pose_graph_exec
     src/pose_graph_node.cpp
-    src/pose_graph.cpp
+    # src/pose_graph.cpp
     src/keyframe.cpp
     src/utility/CameraPoseVisualization.cpp
     src/ThirdParty/DBoW/BowVector.cpp
@@ -44,15 +44,17 @@ add_executable(pose_graph
     src/ThirdParty/DUtils/Timestamp.cpp
     src/ThirdParty/DVision/BRIEF.cpp
     src/ThirdParty/VocabularyBinary.cpp
-    )
+    src/loop_detector.cpp
+    src/loop_detector.h
+)
 
-ament_target_dependencies(pose_graph rclcpp rcpputils std_msgs sensor_msgs visualization_msgs geometry_msgs nav_msgs tf2 tf2_ros cv_bridge camera_model image_transport)
+ament_target_dependencies(pose_graph_exec rclcpp rcpputils std_msgs sensor_msgs visualization_msgs geometry_msgs nav_msgs tf2 tf2_ros cv_bridge camera_model image_transport)
 
-target_link_libraries(pose_graph ${OpenCV_LIBS} ${CERES_LIBRARIES}) 
+target_link_libraries(pose_graph_exec ${OpenCV_LIBS} ${CERES_LIBRARIES})
 
 # Install nodes
 install(
-  TARGETS pose_graph
+  TARGETS pose_graph_exec
   DESTINATION lib/${PROJECT_NAME}
 )
 

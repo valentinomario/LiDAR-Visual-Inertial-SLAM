@@ -9,20 +9,22 @@
 #include <sensor_msgs/msg/point_cloud.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 #include <cv_bridge/cv_bridge.h>
+#include <std_msgs/msg/detail/float64_multi_array__struct.hpp>
+#include <visualization_msgs/msg/marker_array.hpp>
+#include <std_msgs/msg/float64_multi_array.hpp>
+#include <rclcpp/rclcpp.hpp>
 
 extern camodocal::CameraPtr m_camera;
 extern Eigen::Vector3d tic;
 extern Eigen::Matrix3d qic;
-extern rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr pub_match_img;
-extern rclcpp::Publisher<sensor_msgs::msg::PointCloud>::SharedPtr pub_match_points;
-extern int VISUALIZATION_SHIFT_X;
-extern int VISUALIZATION_SHIFT_Y;
-extern std::string BRIEF_PATTERN_FILE;
-extern std::string POSE_GRAPH_SAVE_PATH;
-extern int ROW;
-extern int COL;
-extern std::string VINS_RESULT_PATH;
+
+extern std::string IMAGE_TOPIC;
 extern int DEBUG_IMAGE;
-extern int FAST_RELOCALIZATION;
+extern int LOOP_CLOSURE;
+extern double MATCH_IMAGE_SCALE;
+
+extern rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr pub_match_img;
+extern rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr pub_match_msg;
+extern rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr pub_key_pose;
 
 
