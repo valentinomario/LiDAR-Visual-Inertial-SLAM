@@ -106,3 +106,6 @@ debug_image: 0                      # save raw image in loop detector for visual
 match_image_scale: 0.5
 vocabulary_file: "/config/brief_k10L6.bin"
 brief_pattern_file: "/config/brief_pattern.yml"
+
+pose_graph_save_path: /home/user/db/pose_graph
+output_path: /home/user/db/output

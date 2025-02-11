@@ -1,7 +1,7 @@
 #include "feature_tracker.h"
 
 #define SHOW_UNDISTORTION 0
-#define DEBUG_CALLBACK_FPS 1
+#define DEBUG_CALLBACK_FPS 0
 
 vector<uchar> r_status;
 vector<float> r_err;
