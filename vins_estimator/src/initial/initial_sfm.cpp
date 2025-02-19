@@ -272,6 +272,8 @@ bool GlobalSFM::construct(int frame_num, Quaterniond* q, Vector3d* T, int l,
 
 	}
 	ceres::Solver::Options options;
+
+	// This optimization does not benefit from CUDA acceleration
 	options.linear_solver_type = ceres::DENSE_SCHUR;
 	//options.minimizer_progress_to_stdout = true;
 	options.max_solver_time_in_seconds = 0.2;

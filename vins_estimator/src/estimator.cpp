@@ -791,6 +791,7 @@ void Estimator::optimization()
 
     ceres::Solver::Options options;
 
+    // This optimization does not benefit from CUDA acceleration
     options.linear_solver_type = ceres::DENSE_SCHUR;
     //options.num_threads = 2;
     options.trust_region_strategy_type = ceres::DOGLEG;
@@ -805,7 +806,7 @@ void Estimator::optimization()
 
     ceres::Solver::Summary summary;
     ceres::Solve(options, &problem, &summary);
-    //cout << summary.BriefReport() << endl;
+    //cout << summary.FullReport() << endl;
 
     double2vector();
 
