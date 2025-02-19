@@ -68,7 +68,7 @@ def generate_launch_description():
     # Define the pose_graph node
     pose_graph_node = Node(
         package='pose_graph',
-        executable='pose_graph',
+        executable='pose_graph_exec',
         name='pose_graph',
         output='screen',
         parameters=[{
