@@ -505,7 +505,7 @@ int main(int argc, char **argv)
         fsSettings["image_topic"] >> IMAGE_TOPIC;        
         fsSettings["pose_graph_save_path"] >> POSE_GRAPH_SAVE_PATH;
         fsSettings["output_path"] >> VINS_RESULT_PATH;
-        fsSettings["save_image"] >> DEBUG_IMAGE;
+        fsSettings["debug_image"] >> DEBUG_IMAGE;
 
         // create folder if not exists
         FileSystemHelper::createDirectoryIfNotExists(POSE_GRAPH_SAVE_PATH.c_str());
