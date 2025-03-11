@@ -1,5 +1,5 @@
 #include "utility.h"
-#include "emv_lio2/msg/cloud_info.hpp"
+#include "lidar_odometry/msg/cloud_info.hpp"
 
 struct smoothness_t{
     float value;
@@ -17,9 +17,9 @@ class FeatureExtraction : public ParamServer
 
 public:
 
-    rclcpp::Subscription<emv_lio2::msg::CloudInfo>::SharedPtr subLaserCloudInfo;
+    rclcpp::Subscription<lidar_odometry::msg::CloudInfo>::SharedPtr subLaserCloudInfo;
 
-    rclcpp::Publisher<emv_lio2::msg::CloudInfo>::SharedPtr pubLaserCloudInfo;
+    rclcpp::Publisher<lidar_odometry::msg::CloudInfo>::SharedPtr pubLaserCloudInfo;
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pubCornerPoints;
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pubSurfacePoints;
 
@@ -29,7 +29,7 @@ public:
 
     pcl::VoxelGrid<PointType> downSizeFilter;
 
-    emv_lio2::msg::CloudInfo cloudInfo;
+    lidar_odometry::msg::CloudInfo cloudInfo;
     std_msgs::msg::Header cloudHeader;
 
     std::vector<smoothness_t> cloudSmoothness;
@@ -38,13 +38,13 @@ public:
     int *cloudLabel;
 
     FeatureExtraction(const rclcpp::NodeOptions & options) :
-        ParamServer("lio_sam_featureExtraction", options)
+        ParamServer("featureExtraction", options)
     {
-        subLaserCloudInfo = create_subscription<emv_lio2::msg::CloudInfo>(
+        subLaserCloudInfo = create_subscription<lidar_odometry::msg::CloudInfo>(
             "lio_sam/deskew/cloud_info", qos,
             std::bind(&FeatureExtraction::laserCloudInfoHandler, this, std::placeholders::_1));
 
-        pubLaserCloudInfo = create_publisher<emv_lio2::msg::CloudInfo>(
+        pubLaserCloudInfo = create_publisher<lidar_odometry::msg::CloudInfo>(
             "lio_sam/feature/cloud_info", qos);
         pubCornerPoints = create_publisher<sensor_msgs::msg::PointCloud2>(
             "lio_sam/feature/cloud_corner", 1);
@@ -69,22 +69,17 @@ public:
         cloudLabel = new int[N_SCAN*Horizon_SCAN];
     }
 
-    void laserCloudInfoHandler(const emv_lio2::msg::CloudInfo::SharedPtr msgIn)
+    void laserCloudInfoHandler(const lidar_odometry::msg::CloudInfo::SharedPtr msgIn)
     {
         cloudInfo = *msgIn; // new cloud info
         cloudHeader = msgIn->header; // new cloud header
         pcl::fromROSMsg(msgIn->cloud_deskewed, *extractedCloud); // new cloud for extraction
 
-        if (true){ // TODO feature_enable is always false in emv-lio
-            calculateSmoothness();
+        calculateSmoothness();
 
-            markOccludedPoints();
+        markOccludedPoints();
 
-            extractFeatures();
-        } else
-        {
-            pcl::copyPointCloud(*extractedCloud, *surfaceCloud);
-        }
+        extractFeatures();
 
         publishFeatureCloud();
     }

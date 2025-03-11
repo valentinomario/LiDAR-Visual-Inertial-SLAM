@@ -1,5 +1,5 @@
 #include "utility.h"
-#include "emv_lio2/msg/cloud_info.hpp"
+#include "lidar_odometry/msg/cloud_info.hpp"
 
 struct VelodynePointXYZIRT
 {
@@ -61,7 +61,7 @@ private:
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pubLaserCloud;
 
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pubExtractedCloud;
-    rclcpp::Publisher<emv_lio2::msg::CloudInfo>::SharedPtr pubLaserCloudInfo;
+    rclcpp::Publisher<lidar_odometry::msg::CloudInfo>::SharedPtr pubLaserCloudInfo;
 
     rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr subImu;
     rclcpp::CallbackGroup::SharedPtr callbackGroupImu;
@@ -96,7 +96,7 @@ private:
     float odomIncreY;
     float odomIncreZ;
 
-    emv_lio2::msg::CloudInfo cloudInfo;
+    lidar_odometry::msg::CloudInfo cloudInfo;
     double timeScanCur;
     double timeScanEnd;
     std_msgs::msg::Header cloudHeader;
@@ -106,7 +106,7 @@ private:
 
 public:
     ImageProjection(const rclcpp::NodeOptions & options) :
-            ParamServer("lio_sam_imageProjection", options), deskewFlag(0)
+            ParamServer("imageProjection", options), deskewFlag(0)
     {
         callbackGroupLidar = create_callback_group(
             rclcpp::CallbackGroupType::MutuallyExclusive);
@@ -137,7 +137,7 @@ public:
 
         pubExtractedCloud = create_publisher<sensor_msgs::msg::PointCloud2>(
             "lio_sam/deskew/cloud_deskewed", 1);
-        pubLaserCloudInfo = create_publisher<emv_lio2::msg::CloudInfo>(
+        pubLaserCloudInfo = create_publisher<lidar_odometry::msg::CloudInfo>(
             "lio_sam/deskew/cloud_info", qos);
 
         allocateMemory();

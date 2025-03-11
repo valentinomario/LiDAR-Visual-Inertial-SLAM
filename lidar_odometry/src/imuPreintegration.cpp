@@ -44,7 +44,7 @@ class TransformFusion : public ParamServer {
     double lidarOdomTime = -1;
     deque<nav_msgs::msg::Odometry> imuOdomQueue;
 
-    TransformFusion(const rclcpp::NodeOptions& options) : ParamServer("lio_sam_transformFusion", options) {
+    TransformFusion(const rclcpp::NodeOptions& options) : ParamServer("transformFusion", options) {
         tfBuffer = std::make_shared<tf2_ros::Buffer>(get_clock());
         tfListener = std::make_shared<tf2_ros::TransformListener>(*tfBuffer);
 

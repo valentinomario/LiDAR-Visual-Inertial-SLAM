@@ -1,6 +1,6 @@
 #include "utility.h"
-#include "emv_lio2/msg/cloud_info.hpp"
-#include "emv_lio2/srv/save_map.hpp"
+#include "lidar_odometry/msg/cloud_info.hpp"
+#include "lidar_odometry/srv/save_map.hpp"
 #include <gtsam/geometry/Rot3.h>
 #include <gtsam/geometry/Pose3.h>
 #include <gtsam/slam/PriorFactor.h>
@@ -72,13 +72,13 @@ public:
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pubCloudRegisteredRaw;
     rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr pubLoopConstraintEdge;
 
-    rclcpp::Service<emv_lio2::srv::SaveMap>::SharedPtr srvSaveMap;
-    rclcpp::Subscription<emv_lio2::msg::CloudInfo>::SharedPtr subCloud;
+    rclcpp::Service<lidar_odometry::srv::SaveMap>::SharedPtr srvSaveMap;
+    rclcpp::Subscription<lidar_odometry::msg::CloudInfo>::SharedPtr subCloud;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr subGPS;
     rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::SharedPtr subLoop;
 
     std::deque<nav_msgs::msg::Odometry> gpsQueue;
-    emv_lio2::msg::CloudInfo cloudInfo;
+    lidar_odometry::msg::CloudInfo cloudInfo;
 
     vector<pcl::PointCloud<PointType>::Ptr> cornerCloudKeyFrames;
     vector<pcl::PointCloud<PointType>::Ptr> surfCloudKeyFrames;
@@ -151,7 +151,7 @@ public:
 
     std::unique_ptr<tf2_ros::TransformBroadcaster> br;
 
-    mapOptimization(const rclcpp::NodeOptions & options) : ParamServer("lio_sam_mapOptimization", options)
+    mapOptimization(const rclcpp::NodeOptions & options) : ParamServer("mapOptimization", options)
     {
         ISAM2Params parameters;
         parameters.relinearizeThreshold = 0.1;
@@ -166,7 +166,7 @@ public:
         pubPath = create_publisher<nav_msgs::msg::Path>("lio_sam/mapping/path", 1);
         br = std::make_unique<tf2_ros::TransformBroadcaster>(this);
 
-        subCloud = create_subscription<emv_lio2::msg::CloudInfo>(
+        subCloud = create_subscription<lidar_odometry::msg::CloudInfo>(
             "lio_sam/feature/cloud_info", qos,
             std::bind(&mapOptimization::laserCloudInfoHandler, this, std::placeholders::_1));
         subGPS = create_subscription<nav_msgs::msg::Odometry>(
@@ -176,7 +176,7 @@ public:
             "/vins/loop/match_frame", qos,
             std::bind(&mapOptimization::loopInfoHandler, this, std::placeholders::_1));
 
-        auto saveMapService = [this](const std::shared_ptr<rmw_request_id_t> request_header, const std::shared_ptr<emv_lio2::srv::SaveMap::Request> req, std::shared_ptr<emv_lio2::srv::SaveMap::Response> res) -> void {
+        auto saveMapService = [this](const std::shared_ptr<rmw_request_id_t> request_header, const std::shared_ptr<lidar_odometry::srv::SaveMap::Request> req, std::shared_ptr<lidar_odometry::srv::SaveMap::Response> res) -> void {
             (void)request_header;
             string saveMapDirectory;
             cout << "****************************************************" << endl;
@@ -235,7 +235,7 @@ public:
             return;
         };
 
-        srvSaveMap = create_service<emv_lio2::srv::SaveMap>("lio_sam/save_map", saveMapService);
+        srvSaveMap = create_service<lidar_odometry::srv::SaveMap>("lio_sam/save_map", saveMapService);
         pubHistoryKeyFrames = create_publisher<sensor_msgs::msg::PointCloud2>("lio_sam/mapping/icp_loop_closure_history_cloud", 1);
         pubIcpKeyFrames = create_publisher<sensor_msgs::msg::PointCloud2>("lio_sam/mapping/icp_loop_closure_history_cloud", 1);
         pubLoopConstraintEdge = create_publisher<visualization_msgs::msg::MarkerArray>("/lio_sam/mapping/loop_closure_constraints", 1);
@@ -295,7 +295,7 @@ public:
         matP.setZero();
     }
 
-    void laserCloudInfoHandler(const emv_lio2::msg::CloudInfo::SharedPtr msgIn)
+    void laserCloudInfoHandler(const lidar_odometry::msg::CloudInfo::SharedPtr msgIn)
     {
         // extract time stamp
         timeLaserInfoStamp = msgIn->header.stamp;

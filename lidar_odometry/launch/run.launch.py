@@ -8,10 +8,10 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
 
-    share_dir = get_package_share_directory('emv_lio2')
+    share_dir = get_package_share_directory('config_pkg')
     parameter_file = LaunchConfiguration('params_file')
-    xacro_path = os.path.join(share_dir, 'launch', 'include','config', 'robot.urdf.xacro')
-    rviz_config_file = os.path.join(share_dir, 'launch', 'include', 'config', 'rviz.rviz')
+    xacro_path = os.path.join(share_dir, 'launch', 'include','lidar_odometry', 'robot.urdf.xacro')
+    rviz_config_file = os.path.join(share_dir, 'launch', 'include', 'lidar_odometry', 'rviz.rviz')
 
     params_declare = DeclareLaunchArgument(
         'params_file',
@@ -40,30 +40,30 @@ def generate_launch_description():
             }]
         ),
         Node(
-            package='emv_lio2',
-            executable='emv_lio2_imuPreintegration',
-            name='emv_lio2_imuPreintegration',
+            package='lidar_odometry',
+            executable='imuPreintegration',
+            name='imuPreintegration',
             parameters=[parameter_file],
             output='screen'
         ),
         Node(
-            package='emv_lio2',
-            executable='emv_lio2_imageProjection',
-            name='emv_lio2_imageProjection',
+            package='lidar_odometry',
+            executable='imageProjection',
+            name='imageProjection',
             parameters=[parameter_file],
             output='screen'
         ),
         Node(
-            package='emv_lio2',
-            executable='emv_lio2_featureExtraction',
-            name='emv_lio2_featureExtraction',
+            package='lidar_odometry',
+            executable='featureExtraction',
+            name='featureExtraction',
             parameters=[parameter_file],
             output='screen'
         ),
         Node(
-            package='emv_lio2',
-            executable='emv_lio2_mapOptimization',
-            name='emv_lio2_mapOptimization',
+            package='lidar_odometry',
+            executable='mapOptimization',
+            name='mapOptimization',
             parameters=[parameter_file],
             output='screen'
         ),

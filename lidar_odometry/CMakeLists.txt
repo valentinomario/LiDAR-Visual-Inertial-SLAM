@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 cmake_policy(SET CMP0074 NEW)
-project(emv_lio2)
+project(lidar_odometry)
 message(STATUS "cloud_messages: " ${cloud_msg_INCLUDE_DIRS})
 
 # CMake flags
@@ -39,93 +39,14 @@ find_package(livox_ros_driver2 REQUIRED)
 
 # Include directories
 include_directories(
-        include/emv_lio2
+        include/lidar_odometry
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME} "msg/CloudInfo.msg" "srv/SaveMap.srv" DEPENDENCIES std_msgs sensor_msgs)
 
-# Test
-# add_executable(test_node src/test_node.cpp)
-# ament_target_dependencies(test_node rclcpp std_msgs)
-# install(TARGETS test_node DESTINATION lib/${PROJECT_NAME})
-
-# add_executable(dummy_transform src/dummy_transform.cpp)
-# ament_target_dependencies(dummy_transform rclcpp tf2 tf2_ros geometry_msgs)
-# install(TARGETS dummy_transform DESTINATION lib/${PROJECT_NAME})
-
-# Visual Feature Tracker
-# add_executable(${PROJECT_NAME}_visual_feature
-#         src/visual_odometry/visual_feature/feature_tracker.cpp
-#         src/visual_odometry/visual_feature/feature_tracker_node.cpp
-#         src/visual_odometry/visual_feature/parameters.cpp
-#         src/visual_odometry/visual_feature/camera_models/Camera.cc
-#         src/visual_odometry/visual_feature/camera_models/CostFunctionFactory.cc
-#         src/visual_odometry/visual_feature/camera_models/ScaramuzzaCamera.cc
-#         src/visual_odometry/visual_feature/camera_models/CameraFactory.cc
-#         src/visual_odometry/visual_feature/camera_models/EquidistantCamera.cc
-#         src/visual_odometry/visual_feature/camera_models/gpl.cc
-#         src/visual_odometry/visual_feature/camera_models/CataCamera.cc
-#         src/visual_odometry/visual_feature/camera_models/PinholeCamera.cc
-# )
-#
-# ament_target_dependencies(${PROJECT_NAME}_visual_feature
-#         rclcpp
-#         sensor_msgs
-#         std_msgs
-#         geometry_msgs
-#         nav_msgs
-#         tf2
-#         tf2_ros
-#         tf2_eigen
-#         PCL
-#         pcl_conversions
-#         cv_bridge
-#         OpenCV
-#         Ceres
-# )
-#
-#
-# # Visual Odometry
-# add_executable(${PROJECT_NAME}_visual_odometry
-#         src/visual_odometry/visual_estimator/estimator_node.cpp
-#         src/visual_odometry/visual_estimator/parameters.cpp
-#         src/visual_odometry/visual_estimator/utility/utility.cpp
-#         src/visual_odometry/visual_estimator/factor/pose_local_parametrization.cpp
-#         src/visual_odometry/visual_estimator/factor/projection_factor.cpp
-#         src/visual_odometry/visual_estimator/factor/projection_td_factor.cpp
-#         src/visual_odometry/visual_estimator/factor/marginalization_factor.cpp
-#         src/visual_odometry/visual_estimator/initial/solve_5pts.cpp
-#         src/visual_odometry/visual_estimator/initial/initial_sfm.cpp
-#         src/visual_odometry/visual_estimator/feature_manager.cpp
-#         src/visual_odometry/visual_estimator/initial/initial_alignment.cpp
-#         src/visual_odometry/visual_estimator/utility/CameraPoseVisualization.cpp
-#         src/visual_odometry/visual_estimator/utility/visualization.cpp
-#
-#         src/visual_odometry/visual_estimator/estimator.cpp
-# )
-# ament_target_dependencies(${PROJECT_NAME}_visual_odometry
-#         rclcpp
-#         sensor_msgs
-#         std_msgs
-#         PCL
-#         pcl_conversions
-#         tf2
-#         tf2_ros
-#         tf2_eigen
-#         tf2_geometry_msgs
-#         nav_msgs
-#         visualization_msgs
-#         OpenCV
-#         Ceres
-# )
-#
-# # Visual Loop
-# # add_executable(${PROJECT_NAME}_visual_loop src/visual_odometry/visual_loop/*.cpp src/visual_odometry/visual_loop/utility/*.cpp src/visual_odometry/visual_loop/ThirdParty/*.cpp src/visual_odometry/visual_loop/ThirdParty/DBoW/*.cpp src/visual_odometry/visual_loop/ThirdParty/DUtils/*.cpp src/visual_odometry/visual_loop/ThirdParty/DVision/*.cpp src/visual_odometry/visual_feature/camera_models/*.cc)
-# # ament_target_dependencies(${PROJECT_NAME}_visual_loop rclcpp sensor_msgs std_msgs PCL OpenCV Ceres)
-#
 # IMU Preintegration
-add_executable(${PROJECT_NAME}_imuPreintegration src/lidar_odometry/imuPreintegration.cpp)
-ament_target_dependencies(${PROJECT_NAME}_imuPreintegration
+add_executable(imuPreintegration src/imuPreintegration.cpp)
+ament_target_dependencies(imuPreintegration
         rclcpp
         rclpy
         std_msgs
@@ -145,11 +66,11 @@ ament_target_dependencies(${PROJECT_NAME}_imuPreintegration
         Eigen
         livox_ros_driver2
 )
-target_link_libraries(${PROJECT_NAME}_imuPreintegration gtsam "${cpp_typesupport_target}")
+target_link_libraries(imuPreintegration gtsam "${cpp_typesupport_target}")
 
 # Image projection
-add_executable(${PROJECT_NAME}_imageProjection src/lidar_odometry/imageProjection.cpp)
-ament_target_dependencies(${PROJECT_NAME}_imageProjection
+add_executable(imageProjection src/imageProjection.cpp)
+ament_target_dependencies(imageProjection
         rclcpp
         rclpy
         std_msgs
@@ -169,11 +90,11 @@ ament_target_dependencies(${PROJECT_NAME}_imageProjection
         livox_ros_driver2
 )
 rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
-target_link_libraries(${PROJECT_NAME}_imageProjection "${cpp_typesupport_target}")
+target_link_libraries(imageProjection "${cpp_typesupport_target}")
 
 
-add_executable(${PROJECT_NAME}_featureExtraction src/lidar_odometry/featureExtraction.cpp)
-ament_target_dependencies(${PROJECT_NAME}_featureExtraction
+add_executable(featureExtraction src/featureExtraction.cpp)
+ament_target_dependencies(featureExtraction
         rclcpp
         rclpy
         std_msgs
@@ -193,11 +114,11 @@ ament_target_dependencies(${PROJECT_NAME}_featureExtraction
         livox_ros_driver2
 )
 rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
-target_link_libraries(${PROJECT_NAME}_featureExtraction "${cpp_typesupport_target}")
+target_link_libraries(featureExtraction "${cpp_typesupport_target}")
 
 # Mapping Optimization
-add_executable(${PROJECT_NAME}_mapOptimization src/lidar_odometry/mapOptimization.cpp)
-ament_target_dependencies(${PROJECT_NAME}_mapOptimization
+add_executable(mapOptimization src/mapOptimization.cpp)
+ament_target_dependencies(mapOptimization
         rclcpp
         rclpy
         std_msgs
@@ -220,45 +141,21 @@ ament_target_dependencies(${PROJECT_NAME}_mapOptimization
 rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
 if (OpenMP_CXX_FOUND)
-  target_link_libraries(${PROJECT_NAME}_mapOptimization gtsam "${cpp_typesupport_target}" OpenMP::OpenMP_CXX)
+  target_link_libraries(mapOptimization gtsam "${cpp_typesupport_target}" OpenMP::OpenMP_CXX)
 else()
-  target_link_libraries(${PROJECT_NAME}_mapOptimization gtsam "${cpp_typesupport_target}")
+  target_link_libraries(mapOptimization gtsam "${cpp_typesupport_target}")
 endif()
-
-
-# Test
-# add_executable(${PROJECT_NAME}_msgTest src/lidar_odometry/msgTest.cpp)
-# ament_target_dependencies(${PROJECT_NAME}_msgTest rclcpp sensor_msgs std_msgs PCL OpenCV)
-
-# Install targets
-# install(TARGETS
-#         ${PROJECT_NAME}_visual_feature
-#         ${PROJECT_NAME}_visual_odometry
-#         ${PROJECT_NAME}_visual_loop
-#         ${PROJECT_NAME}_imuPreintegration
-#         ${PROJECT_NAME}_imageProjection
-#         ${PROJECT_NAME}_featureExtraction
-#         ${PROJECT_NAME}_mapOptimization
-#         ${PROJECT_NAME}_msgTest
-#         DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY
         launch
         DESTINATION share/${PROJECT_NAME}/
 )
 
-install(DIRECTORY
-        config
-        DESTINATION share/${PROJECT_NAME}/
-)
-
 install(TARGETS
-        # ${PROJECT_NAME}_visual_feature
-        # ${PROJECT_NAME}_visual_odometry
-        ${PROJECT_NAME}_imuPreintegration
-        ${PROJECT_NAME}_imageProjection
-        ${PROJECT_NAME}_featureExtraction
-        ${PROJECT_NAME}_mapOptimization
+        imuPreintegration
+        imageProjection
+        featureExtraction
+        mapOptimization
 
         DESTINATION lib/${PROJECT_NAME}
 )
@@ -356,11 +253,11 @@ else()
   message(WARNING "OpenCV_LIBS is not set")
 endif()
 
-if(CERES_LIBRARIES)
-  message(STATUS "CERES_LIBRARIES = ${CERES_LIBRARIES}")
-else()
-  message(WARNING "CERES_LIBRARIES is not set")
-endif()
+# if(CERES_LIBRARIES)
+#   message(STATUS "CERES_LIBRARIES = ${CERES_LIBRARIES}")
+# else()
+#   message(WARNING "CERES_LIBRARIES is not set")
+# endif()
 
 if(Boost_LIBRARIES)
   message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
