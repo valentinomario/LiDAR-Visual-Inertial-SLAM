@@ -45,13 +45,13 @@ def generate_launch_description():
         'launch/include/visual_odometry/rviz.rviz'
     ])
 
-    rviz_node = Node(
-        package='rviz2',
-        executable='rviz2',
-        name='rviz2',
-        arguments=['-d', rviz_config_path],
-        output='screen'
-    )
+    # rviz_node = Node(
+    #     package='rviz2',
+    #     executable='rviz2',
+    #     name='rviz2',
+    #     arguments=['-d', rviz_config_path],
+    #     output='screen'
+    # )
 
     # Define the vins_estimator node
     vins_estimator_node = Node(
@@ -97,6 +97,6 @@ def generate_launch_description():
         vins_estimator_node,
         pose_graph_node,
         feature_tracker_node,
-        rviz_node,
+        # rviz_node,
         robot_state_publisher
     ])
