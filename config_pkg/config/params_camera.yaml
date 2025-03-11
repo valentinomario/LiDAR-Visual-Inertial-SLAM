@@ -1,7 +1,7 @@
 %YAML:1.0
 
 # Project
-project_name: "emv_lio2"
+project_name: "vins_estimator"
 
 #common parameters
 imu_topic: "/livox/imu"
