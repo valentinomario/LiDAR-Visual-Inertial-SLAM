@@ -11,7 +11,10 @@ find_package(std_msgs REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem program_options system)
 include_directories(${Boost_INCLUDE_DIRS})
 
-file(GLOB Boost_LIBRARIES /usr/lib/libboost_*.so)
+execute_process(COMMAND uname -m OUTPUT_VARIABLE ARCH OUTPUT_STRIP_TRAILING_WHITESPACE)
+if(ARCH STREQUAL "aarch64")
+    file(GLOB Boost_LIBRARIES /usr/lib/libboost_*.so)
+endif()
 
 find_package(OpenCV 4 REQUIRED)
 find_package(Ceres REQUIRED)
