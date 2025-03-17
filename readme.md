@@ -5,12 +5,21 @@ This repository contains the implementation of a **LiDAR-Visual-Inertial SLAM sy
 
 The project is implemented in **ROS 2 Humble**, leveraging **CUDA acceleration** for image processing and is shipped with a **Docker** image to streamline development.
 
+<div align="center">
+  <img src="./docs/media/mulini_detail.png" width="60%">
+</div>
+
 ## Features
 
 -   **Tightly Coupled Sensor Fusion**: Leveraging the strengths of LiDAR, visual, and inertial sensors to enhance state estimation.
 -   **Enhanced Feature Tracking**: Combining visual and LiDAR data to reliably track features even in low-texture environments.
 -   **Efficient Initialization**: Rapid initialization achieved by integrating visual Structure-from-Motion (SfM) with IMU preintegration.
 -   **Global Consistency**: Employing pose graph optimization to manage drift through frequent loop closure detection.
+
+<div align="center">
+  <img src="./docs/media/claudio_earth.png" width="60%">
+</div>
+
 
 ## Table of Contents
 
@@ -24,6 +33,11 @@ The project is implemented in **ROS 2 Humble**, leveraging **CUDA acceleration**
 ## Quick-Start Guide
 
 Refer to the [Quick-Start Guide](./docs/quick-start.md) for step-by-step instructions on building and running the system using Docker.
+
+<div align="center">
+  <img src="./docs/media/loop_map.png" width="60%">
+</div>
+
 
 ----------
 
