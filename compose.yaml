@@ -1,0 +1,22 @@
+services:
+  lidar_visual_inertial_slam:
+#    build:
+#      context: ./docker
+#      dockerfile: ${DOCKERFILE}
+#      args:
+#        USER_ID: ${USER_ID}
+#        GROUP_ID: ${GROUP_ID}      
+    image: ${IMAGE}
+    container_name: lidar_visual_inertial_slam
+    runtime: nvidia
+    volumes: 
+      - ./:/home/user/ros2_ws/src
+      - /tmp/.X11-unix:/tmp/.X11-unix:ro
+      - /tmp/argus_socket:/tmp/argus_socket
+    environment: 
+      - DISPLAY=$DISPLAY
+      - XDG_RUNTIME_DIR=/tmp/runtime-user
+    network_mode: host
+    stdin_open: true
+    tty: true
+
