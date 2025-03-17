@@ -4,9 +4,9 @@
 The goal of this guide is to get you started using this project on the hardware described in [the hardware section](#hardware). Follow it thoroughly if you wish to run your own experiments. This project is shipped with a helper script based on docker compose to automatize the configuration process. Running it on the docker container is not strictly necessary, however it is highly recommended. Note that the *aarch64*-based container with CUDA support was used for the experiments on the NVIDIA Jetson Orin NX, while the *x64*-based containers were only used for offline development. The *x64* container with CUDA support may not work on all machines as it depends on the system's hardware specifications. If you decide to continue the development on your local machine, or on a custom container, you can skip to [the ros 
 drivers section](#ros-drivers). All the requirements necessary to your environment are listed in [the requirements section](#requirements). 
 
-## Build and run your container
+## Run your container
 
-To build and launch the docker container, simply move to the repository root directory and run:
+To pull and launch the docker container, simply move to the repository root directory and run:
 
     ./docker_up.sh
 
